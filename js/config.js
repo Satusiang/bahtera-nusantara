@@ -3,6 +3,6 @@
 // "anon / publishable key" AMAN dipasang di sini karena akses dibatasi aturan RLS.
 // JANGAN pernah menaruh "service_role / secret key" di sini.
 window.BUMDES_CONFIG = {
-  supabaseUrl: "",      // contoh: "https://abcdefgh.supabase.co"
-  supabaseAnonKey: ""   // contoh: "eyJhbGciOi..." atau "sb_publishable_..."
+  supabaseUrl: "https://avrshcvaswikljveilsy.supabase.co",
+  supabaseAnonKey: "sb_publishable_oo7nGoJOxSW1UHMGI_Q3wQ_aZhSYMRg"
 };
