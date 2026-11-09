@@ -1,6 +1,7 @@
 // ====== PENGATURAN ======
-// Ganti dengan nomor WhatsApp BUMDes, format 62..., tanpa + atau 0 di depan. Contoh: "6281234567890"
-const WA_NUMBER = "6289660279551";
+// Nomor WhatsApp cadangan (format 62..., tanpa + atau 0 di depan).
+// Jika Supabase sudah tersambung, nomor diambil dari pengaturan di halaman admin.
+window.WA_NUMBER = window.WA_NUMBER || "6289660279551";
 
 // Menu HP
 const menu = document.getElementById('menu');
@@ -15,9 +16,9 @@ document.querySelectorAll('[data-wa]').forEach(el => {
 });
 
 function openWA(text) {
-  if (!WA_NUMBER) { alertBox('Nomor WhatsApp belum diisi (WA_NUMBER di js/main.js). Ini masih draf.'); return; }
+  if (!window.WA_NUMBER) { alertBox('Nomor WhatsApp belum diisi (WA_NUMBER di js/main.js). Ini masih draf.'); return; }
   const a = document.createElement('a');
-  a.href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+  a.href = `https://wa.me/${window.WA_NUMBER}?text=${encodeURIComponent(text)}`;
   a.target = '_blank'; a.rel = 'noopener'; a.click();
 }
 
@@ -41,13 +42,17 @@ f?.addEventListener('submit', e => {
 });
 
 // Filter galeri
+window.applyGalleryFilter = function () {
+  const on = document.querySelector('.filters button.on');
+  const k = on ? on.dataset.f : 'semua';
+  document.querySelectorAll('.gallery figure').forEach(fig => {
+    fig.style.display = (k === 'semua' || fig.dataset.k === k) ? '' : 'none';
+  });
+};
 document.querySelectorAll('.filters button').forEach(b => {
   b.addEventListener('click', () => {
     document.querySelectorAll('.filters button').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
-    const k = b.dataset.f;
-    document.querySelectorAll('.gallery figure').forEach(fig => {
-      fig.style.display = (k === 'semua' || fig.dataset.k === k) ? '' : 'none';
-    });
+    window.applyGalleryFilter();
   });
 });

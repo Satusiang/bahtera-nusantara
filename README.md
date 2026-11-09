@@ -3,10 +3,28 @@
 Website resmi BUMDes Bahtera Nusantara, Desa Karang Bahagia, Kecamatan Karang Bahagia, Kabupaten Bekasi.
 
 ## Struktur
-- `index.html`, `profil.html`, `usaha.html`, `kegiatan.html`, `transparansi.html`, `kontak.html`: halaman website
-- `css/style.css`: tampilan untuk semua halaman
-- `js/main.js`: menu HP, tombol & form WhatsApp, filter galeri (isi `WA_NUMBER` di baris atas)
-- `assets/`: logo, foto, dan file PDF
+| Path | Isi |
+|---|---|
+| `index.html`, `profil.html`, `usaha.html`, `kegiatan.html`, `transparansi.html`, `kontak.html`, `berita.html` | Halaman publik |
+| `admin/` | Halaman admin (login pengurus) |
+| `css/style.css` | Tampilan semua halaman |
+| `js/config.js` | **Alamat & kunci Supabase** |
+| `js/main.js` | Menu HP, tombol & form WhatsApp, filter galeri |
+| `js/data.js`, `js/sb.js` | Mengambil berita, galeri, pengurus, dokumen, kontak dari Supabase |
+| `supabase/schema.sql` | Skema database + aturan akses |
+| `assets/` | Logo |
+
+Selama Supabase belum diisi di `js/config.js`, website menampilkan isi bawaan di HTML.
+
+## Mengaktifkan mode admin
+1. Buat project di [supabase.com](https://supabase.com) (region Singapore).
+2. **SQL Editor → New query**, tempel isi `supabase/schema.sql`, klik **Run**.
+3. **Authentication → Users → Add user → Create new user**: email `bahteranusantara9@gmail.com` (atau email admin lain), buat password, centang **Auto Confirm User**.
+   Email admin lain ditambahkan di SQL Editor: `insert into admin (email) values ('email@contoh.com');`
+4. **Authentication → Sign In / Providers**: matikan **Allow new users to sign up** supaya orang luar tidak bisa daftar.
+5. **Project Settings → API**: salin *Project URL* dan *anon / publishable key* ke `js/config.js`.
+   Jangan pernah memakai *service_role / secret key* di website.
+6. Commit → Cloudflare deploy otomatis. Buka `/admin/` dan login.
 
 ## Deploy
-Cloudflare Pages: framework None, build command kosong, output directory `/`.
+Cloudflare (Workers & Pages) terhubung ke branch `main`; setiap push ter-deploy otomatis. Tidak ada build command.

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin – BUMDes Bahtera Nusantara</title>
+<link rel="icon" href="../assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin">
+
+<header>
+  <div class="wrap nav">
+    <a href="../index.html"><img src="../assets/logo.png" alt="BUMDes Bahtera Nusantara"></a>
+    <div class="who">
+      <span id="who-email"></span>
+      <button class="btn alt small" id="btn-logout" hidden>Keluar</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Belum dikonfigurasi -->
+  <section id="v-noconfig" class="panel" hidden>
+    <h1>Mode admin belum aktif</h1>
+    <p>Isi <code>supabaseUrl</code> dan <code>supabaseAnonKey</code> di file <code>js/config.js</code>, lalu jalankan <code>supabase/schema.sql</code> di SQL Editor Supabase.</p>
+  </section>
+
+  <!-- Login -->
+  <section id="v-login" class="panel narrow" hidden>
+    <h1>Masuk Admin</h1>
+    <p class="muted">Khusus pengurus BUMDes Bahtera Nusantara.</p>
+    <form id="f-login" class="form">
+      <label>Email<input type="email" id="l-email" autocomplete="username" required></label>
+      <label>Password<input type="password" id="l-pass" autocomplete="current-password" required></label>
+      <button class="btn" type="submit">Masuk</button>
+      <p class="err" id="l-err"></p>
+    </form>
+  </section>
+
+  <!-- Bukan admin -->
+  <section id="v-denied" class="panel narrow" hidden>
+    <h1>Akses ditolak</h1>
+    <p>Akun ini belum terdaftar sebagai admin. Tambahkan email-nya ke tabel <code>admin</code> di Supabase.</p>
+  </section>
+
+  <!-- Dasbor -->
+  <section id="v-app" hidden>
+    <div class="tabs" role="tablist">
+      <button data-tab="berita" class="on">📰 Berita</button>
+      <button data-tab="galeri">🖼️ Galeri</button>
+      <button data-tab="pengurus">👥 Pengurus</button>
+      <button data-tab="dokumen">📄 Dokumen</button>
+      <button data-tab="pengaturan">⚙️ Kontak &amp; Profil</button>
+    </div>
+
+    <!-- BERITA -->
+    <div class="tab" id="t-berita">
+      <div class="grid-admin">
+        <form id="f-berita" class="panel form">
+          <h2 id="berita-title">Tulis berita baru</h2>
+          <input type="hidden" id="b-id">
+          <label>Judul<input id="b-judul" required maxlength="160"></label>
+          <label>Tanggal<input type="date" id="b-tanggal" required></label>
+          <label>Isi berita<textarea id="b-isi" rows="9" placeholder="Pisahkan paragraf dengan baris kosong."></textarea></label>
+          <label>Foto sampul<input type="file" id="b-foto" accept="image/*"></label>
+          <div class="preview" id="b-preview"></div>
+          <label class="check"><input type="checkbox" id="b-terbit" checked> Terbitkan (tampil di website)</label>
+          <div class="row">
+            <button class="btn" type="submit">Simpan</button>
+            <button class="btn alt" type="button" id="b-reset">Batal / Baru</button>
+          </div>
+        </form>
+        <div class="panel">
+          <h2>Daftar berita</h2>
+          <div id="l-berita" class="list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GALERI -->
+    <div class="tab" id="t-galeri" hidden>
+      <form id="f-galeri" class="panel form">
+        <h2>Unggah foto</h2>
+        <div class="row wrap-row">
+          <label class="grow">Pilih foto (bisa banyak sekaligus)<input type="file" id="g-files" accept="image/*" multiple required></label>
+          <label>Kategori
+            <select id="g-kat"><option value="umum">Umum</option><option value="padi">Padi</option><option value="ayam">Ayam</option><option value="ikan">Ikan</option></select>
+          </label>
+          <label class="grow">Keterangan<input id="g-ket" maxlength="140" placeholder="mis. Panen perdana"></label>
+        </div>
+        <button class="btn" type="submit">Unggah</button>
+        <p class="muted" id="g-progress"></p>
+      </form>
+      <div class="panel">
+        <h2>Foto di galeri</h2>
+        <div id="l-galeri" class="gal-admin"></div>
+      </div>
+    </div>
+
+    <!-- PENGURUS -->
+    <div class="tab" id="t-pengurus" hidden>
+      <div class="grid-admin">
+        <form id="f-pengurus" class="panel form">
+          <h2 id="pengurus-title">Tambah pengurus</h2>
+          <input type="hidden" id="p-id">
+          <label>Nama<input id="p-nama" required maxlength="80"></label>
+          <label>Jabatan<input id="p-jabatan" required maxlength="80" placeholder="mis. Bendahara"></label>
+          <label>Urutan tampil<input type="number" id="p-urutan" value="10" min="0"></label>
+          <label>Foto (opsional)<input type="file" id="p-foto" accept="image/*"></label>
+          <div class="preview" id="p-preview"></div>
+          <div class="row">
+            <button class="btn" type="submit">Simpan</button>
+            <button class="btn alt" type="button" id="p-reset">Batal / Baru</button>
+          </div>
+        </form>
+        <div class="panel">
+          <h2>Susunan pengurus</h2>
+          <div id="l-pengurus" class="list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOKUMEN -->
+    <div class="tab" id="t-dokumen" hidden>
+      <div class="grid-admin">
+        <form id="f-dokumen" class="panel form">
+          <h2>Unggah dokumen</h2>
+          <label>Judul<input id="d-judul" required maxlength="160" placeholder="mis. Laporan Pertanggungjawaban 2025"></label>
+          <label>Keterangan<input id="d-ket" maxlength="160"></label>
+          <label>Urutan tampil<input type="number" id="d-urutan" value="10" min="0"></label>
+          <label>File (PDF, maks 10 MB)<input type="file" id="d-file" accept=".pdf,application/pdf" required></label>
+          <button class="btn" type="submit">Unggah</button>
+        </form>
+        <div class="panel">
+          <h2>Dokumen publik</h2>
+          <div id="l-dokumen" class="list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PENGATURAN -->
+    <div class="tab" id="t-pengaturan" hidden>
+      <form id="f-pengaturan" class="grid-admin">
+        <div class="panel form">
+          <h2>Kontak</h2>
+          <label>Nomor WhatsApp<input id="s-wa" inputmode="tel" placeholder="0896xxxxxxx"></label>
+          <label>Email<input type="email" id="s-email"></label>
+          <label>Alamat kantor<input id="s-alamat" placeholder="mis. Jl. Raya Karang Bahagia No. 1"></label>
+          <label>Jam layanan<input id="s-jam" placeholder="mis. Senin–Jumat, 08.00–15.00"></label>
+          <label>Kode sematan Google Maps
+            <textarea id="s-maps" rows="4" placeholder='Google Maps → Bagikan → Sematkan peta → Salin HTML, lalu tempel di sini'></textarea>
+          </label>
+        </div>
+        <div class="panel form">
+          <h2>Profil</h2>
+          <label>Sejarah singkat<textarea id="s-sejarah" rows="4"></textarea></label>
+          <label>Visi<textarea id="s-visi" rows="2"></textarea></label>
+          <label>Misi (satu misi per baris)<textarea id="s-misi" rows="5"></textarea></label>
+          <label>NPWP<input id="s-npwp"></label>
+          <label>NIB<input id="s-nib"></label>
+        </div>
+        <div class="span2"><button class="btn" type="submit">Simpan kontak &amp; profil</button></div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="../js/config.js"></script>
+<script type="module" src="admin.js"></script>
+</body>
+</html>
