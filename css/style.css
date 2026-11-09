@@ -204,3 +204,5 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .lightbox img{max-width:100%;max-height:82vh;border-radius:12px}
 .lightbox p{color:#fff;text-align:center}
 .empty{color:var(--muted);padding:20px 0}
+
+[data-bind="sejarah"],[data-bind="visi"]{white-space:pre-line}
