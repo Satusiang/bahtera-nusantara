@@ -73,6 +73,13 @@ create table if not exists public.dokumen (
   dibuat timestamptz not null default now()
 );
 
+-- ---------- Hak akses Data API ----------
+-- Diperlukan bila opsi "Automatically expose new tables" dimatikan saat membuat project.
+-- Siapa boleh melihat/mengubah baris tetap diatur oleh RLS di bawah.
+grant usage on schema public to anon, authenticated;
+grant select on public.pengaturan, public.pengurus, public.berita, public.galeri, public.dokumen to anon, authenticated;
+grant insert, update, delete on public.pengaturan, public.pengurus, public.berita, public.galeri, public.dokumen to authenticated;
+
 -- ---------- Row Level Security ----------
 alter table public.pengaturan enable row level security;
 alter table public.pengurus   enable row level security;
