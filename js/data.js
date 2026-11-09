@@ -11,7 +11,7 @@ function setText(key, value) {
 
 function kartuBerita(b) {
   const foto = safeUrl(b.foto_url);
-  const img = foto ? `<img src="${esc(foto)}" alt="" loading="lazy">` : 'BUMDes Bahtera Nusantara';
+  const img = foto ? `<img src="${esc(foto)}" alt="" loading="lazy">` : 'BUM Desa Bahtera Nusantara';
   return `<article><a class="card-link" href="berita.html?id=${encodeURIComponent(b.id)}">
     <div class="img">${img}</div>
     <div class="txt"><time>${esc(tanggalID(b.tanggal))}</time><h3>${esc(b.judul)}</h3><p>${esc(ringkas(b.isi))}</p></div>
@@ -43,7 +43,7 @@ async function muatPengaturan(sb) {
   const peta = $('#peta');
   const src = mapsSrc(k.maps_embed);
   if (peta && src) {
-    peta.innerHTML = `<iframe src="${esc(src)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta lokasi BUMDes"></iframe>`;
+    peta.innerHTML = `<iframe src="${esc(src)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta lokasi BUM Desa"></iframe>`;
     peta.style.padding = '0';
   }
 
@@ -88,7 +88,7 @@ async function muatDetailBerita(sb) {
   if (!id) { el.innerHTML = '<p class="lead">Berita tidak ditemukan.</p>'; return; }
   const { data, error } = await sb.from('berita').select('*').eq('id', id).maybeSingle();
   if (error || !data) { el.innerHTML = '<p class="lead">Berita tidak ditemukan.</p>'; return; }
-  document.title = `${data.judul} – BUMDes Bahtera Nusantara`;
+  document.title = `${data.judul} – BUM Desa Bahtera Nusantara`;
   const foto = safeUrl(data.foto_url);
   const paragraf = String(data.isi || '').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean)
     .map(t => `<p>${esc(t).replace(/\n/g, '<br>')}</p>`).join('');

@@ -1,6 +1,6 @@
-# Website BUMDes Bahtera Nusantara
+# Website BUM Desa Bahtera Nusantara
 
-Website resmi BUMDes Bahtera Nusantara, Desa Karang Bahagia, Kecamatan Karang Bahagia, Kabupaten Bekasi.
+Website resmi BUM Desa Bahtera Nusantara, Desa Karang Bahagia, Kecamatan Karang Bahagia, Kabupaten Bekasi.
 
 ## Struktur
 | Path | Isi |

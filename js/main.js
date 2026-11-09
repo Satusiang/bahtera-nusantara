@@ -11,7 +11,7 @@ document.querySelector('.menu-btn')?.addEventListener('click', () => menu.classL
 document.querySelectorAll('[data-wa]').forEach(el => {
   el.addEventListener('click', e => {
     e.preventDefault();
-    openWA(el.dataset.wa || 'Halo BUMDes Bahtera Nusantara');
+    openWA(el.dataset.wa || 'Halo BUM Desa Bahtera Nusantara');
   });
 });
 
@@ -38,7 +38,7 @@ const f = document.getElementById('f');
 f?.addEventListener('submit', e => {
   e.preventDefault();
   const v = id => document.getElementById(id).value;
-  openWA(`Halo BUMDes Bahtera Nusantara,\nNama: ${v('nama')}\nKeperluan: ${v('perlu')}\n\n${v('pesan')}`);
+  openWA(`Halo BUM Desa Bahtera Nusantara,\nNama: ${v('nama')}\nKeperluan: ${v('perlu')}\n\n${v('pesan')}`);
 });
 
 // Filter galeri

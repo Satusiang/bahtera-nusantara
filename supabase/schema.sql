@@ -1,5 +1,5 @@
 -- =====================================================================
--- Skema database website BUMDes Bahtera Nusantara
+-- Skema database website BUM Desa Bahtera Nusantara
 -- Cara pakai: Supabase Dashboard -> SQL Editor -> New query -> tempel semua -> Run
 -- Aman dijalankan ulang (idempotent).
 -- =====================================================================
@@ -128,7 +128,7 @@ insert into public.pengaturan (kunci, nilai) values
       'jam', '',
       'maps_embed', '')),
   ('profil', jsonb_build_object(
-      'sejarah', 'BUMDes Bahtera Nusantara didirikan oleh Pemerintah Desa Karang Bahagia melalui Peraturan Desa Nomor 2 Tahun 2025.',
+      'sejarah', 'BUM Desa Bahtera Nusantara didirikan oleh Pemerintah Desa Karang Bahagia melalui Peraturan Desa Nomor 2 Tahun 2025.',
       'visi', '',
       'misi', jsonb_build_array(
         'Mengembangkan usaha berbasis potensi lokal: pertanian, peternakan, dan perikanan.',
