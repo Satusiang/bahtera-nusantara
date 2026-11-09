@@ -1,6 +1,6 @@
 // ====== PENGATURAN ======
 // Ganti dengan nomor WhatsApp BUMDes, format 62..., tanpa + atau 0 di depan. Contoh: "6281234567890"
-const WA_NUMBER = "";
+const WA_NUMBER = "6289660279551";
 
 // Menu HP
 const menu = document.getElementById('menu');
