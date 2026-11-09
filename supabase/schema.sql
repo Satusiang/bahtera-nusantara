@@ -196,3 +196,6 @@ where not exists (select 1 from public.unit_usaha);
 -- Authentication -> Users -> Add user (centang Auto Confirm User).
 insert into public.admin (email) values ('bahteranusantara9@gmail.com')
 on conflict do nothing;
+
+-- Segarkan cache skema Data API agar tabel baru langsung dikenali
+notify pgrst, 'reload schema';
