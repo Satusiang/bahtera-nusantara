@@ -50,3 +50,11 @@ code{background:var(--bg);padding:1px 6px;border-radius:6px;font-size:.9em}
 @media (max-width:900px){.grid-admin{grid-template-columns:1fr}.item{flex-wrap:wrap}}
 .item .noimg{width:64px;height:48px;border-radius:8px;flex-shrink:0;background:linear-gradient(135deg,#e3f1fb,#dff4f7)}
 .btn.alt{border:1px solid var(--line)}
+.table-scroll{overflow-x:auto}
+.tbl-edit{border:1px solid var(--line);border-radius:12px;min-width:520px}
+.tbl-edit th,.tbl-edit td{padding:6px;background:#fff;color:var(--ink);border-bottom:1px solid var(--line)}
+.tbl-edit th{background:var(--bg)}
+.tbl-edit input[type=text]{padding:8px 10px;border:1px solid #cfd9e2;border-radius:8px;font:inherit;font-size:.9rem;width:100%;min-width:110px}
+.tbl-edit .x{background:none;border:0;color:#c0392b;font-size:1.1rem;cursor:pointer;padding:4px 8px}
+.tbl-edit .tb{font-size:.8rem;display:flex;gap:4px;align-items:center;white-space:nowrap}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}

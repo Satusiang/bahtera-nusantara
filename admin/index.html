@@ -54,8 +54,9 @@
     <div class="tabs" role="tablist">
       <button data-tab="berita" class="on">📰 Berita</button>
       <button data-tab="galeri">🖼️ Galeri</button>
+      <button data-tab="unit">🌾 Unit Usaha</button>
       <button data-tab="pengurus">👥 Pengurus</button>
-      <button data-tab="dokumen">📄 Dokumen</button>
+      <button data-tab="dokumen">📊 Transparansi</button>
       <button data-tab="pengaturan">⚙️ Kontak &amp; Profil</button>
     </div>
 
@@ -103,6 +104,48 @@
       </div>
     </div>
 
+    <!-- UNIT USAHA -->
+    <div class="tab" id="t-unit" hidden>
+      <div class="grid-admin">
+        <form id="f-unit" class="panel form">
+          <h2 id="unit-title">Tambah unit usaha</h2>
+          <input type="hidden" id="u-id">
+          <label>Nama unit<input id="u-nama" required maxlength="80" placeholder="mis. Pertanian Pangan"></label>
+          <div class="row wrap-row">
+            <label class="grow">Label status<input id="u-status" maxlength="40" placeholder="mis. Berjalan, Musim tanam 2026"></label>
+            <label>Warna status
+              <select id="u-jenis"><option value="berjalan">Hijau (berjalan)</option><option value="rintisan">Kuning (rintisan)</option><option value="rencana">Biru (rencana)</option></select>
+            </label>
+          </div>
+          <div class="row wrap-row">
+            <label class="grow">Ikon (jika tanpa foto)
+              <select id="u-ikon"><option value="padi">🌾 Padi / tanaman pangan</option><option value="sayur">🥬 Sayur / hortikultura</option><option value="ayam">🥚 Unggas / telur</option><option value="ternak">🐄 Ternak besar</option><option value="ikan">🐟 Perikanan</option><option value="toko">🏪 Toko / jasa</option><option value="umum">🌐 Umum</option></select>
+            </label>
+            <label>Urutan<input type="number" id="u-urutan" value="10" min="0" style="width:90px"></label>
+          </div>
+          <label>Foto (opsional, menggantikan ikon)<input type="file" id="u-foto" accept="image/*"></label>
+          <div class="preview" id="u-preview"></div>
+          <label class="check" id="u-hapusfoto-wrap" hidden><input type="checkbox" id="u-hapusfoto"> Hapus foto, kembali pakai ikon</label>
+          <label>Ringkasan (untuk kartu di Beranda)<textarea id="u-ringkasan" rows="2" maxlength="200"></textarea></label>
+          <label>Deskripsi lengkap<textarea id="u-deskripsi" rows="6" placeholder="Pisahkan paragraf dengan baris kosong."></textarea></label>
+          <label>Rincian singkat (satu per baris, format "Label: Nilai")
+            <textarea id="u-fakta" rows="4" placeholder="Luas lahan: 1 hektare&#10;Hasil: Gabah"></textarea>
+          </label>
+          <label>Pesan awal WhatsApp<input id="u-wa" maxlength="200" placeholder="Halo BUM Desa Bahtera Nusantara, saya ingin bertanya tentang ..."></label>
+          <label class="check"><input type="checkbox" id="u-tampil" checked> Tampilkan di website</label>
+          <div class="row">
+            <button class="btn" type="submit">Simpan</button>
+            <button class="btn alt" type="button" id="u-reset">Batal / Baru</button>
+          </div>
+        </form>
+        <div class="panel">
+          <h2>Daftar unit usaha</h2>
+          <p class="muted">Urutan kecil tampil lebih dulu.</p>
+          <div id="l-unit" class="list"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- PENGURUS -->
     <div class="tab" id="t-pengurus" hidden>
       <div class="grid-admin">
@@ -126,8 +169,19 @@
       </div>
     </div>
 
-    <!-- DOKUMEN -->
+    <!-- DOKUMEN / TRANSPARANSI -->
     <div class="tab" id="t-dokumen" hidden>
+      <form id="f-trans" class="panel form">
+        <h2>Ringkasan keuangan</h2>
+        <label>Catatan di bawah judul<input id="tr-catatan" maxlength="200"></label>
+        <div class="table-scroll"><table class="tbl-edit" id="tr-tabel"></table></div>
+        <div class="row wrap-row">
+          <button class="btn alt small" type="button" id="tr-addrow">+ Baris</button>
+          <button class="btn alt small" type="button" id="tr-addcol">+ Kolom tahun</button>
+        </div>
+        <p class="muted">Isi angka bebas, mis. <code>Rp 15.000.000</code>. Centang "Tebal" untuk baris total. Kosongkan semua baris untuk memakai tabel bawaan.</p>
+        <button class="btn" type="submit">Simpan ringkasan</button>
+      </form>
       <div class="grid-admin">
         <form id="f-dokumen" class="panel form">
           <h2>Unggah dokumen</h2>

@@ -1,4 +1,4 @@
-import { getClient, isConfigured, esc, safeUrl, tanggalID, waLocal } from '../js/sb.js';
+import { getClient, isConfigured, esc, safeUrl, tanggalID, waLocal, IKON } from '../js/sb.js';
 
 const $ = (s) => document.querySelector(s);
 const BUCKET = 'media';
@@ -313,6 +313,175 @@ $('#f-dokumen').addEventListener('submit', e => {
   });
 });
 
+
+// ================= UNIT USAHA =================
+let unitCache = [];
+const JENIS_WARNA = { berjalan: '#167a4c', rintisan: '#9a6200', rencana: '#0e5f8a' };
+function resetUnit() {
+  $('#f-unit').reset();
+  $('#u-id').value = '';
+  $('#u-preview').innerHTML = '';
+  $('#u-hapusfoto-wrap').hidden = true;
+  $('#unit-title').textContent = 'Tambah unit usaha';
+}
+function faktaKeTeks(f) {
+  return (Array.isArray(f) ? f : []).map(x => x.label ? `${x.label}: ${x.nilai ?? ''}` : (x.nilai ?? '')).join('\n');
+}
+function teksKeFakta(t) {
+  return t.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const i = l.indexOf(':');
+    return i > 0 ? { label: l.slice(0, i).trim(), nilai: l.slice(i + 1).trim() } : { label: '', nilai: l };
+  });
+}
+async function muatUnit() {
+  unitCache = check(await sb.from('unit_usaha').select('*').order('urutan').order('dibuat'));
+  $('#l-unit').innerHTML = unitCache.length ? unitCache.map(u => {
+    const thumb = safeUrl(u.foto_url)
+      ? `<img src="${esc(u.foto_url)}" alt="">`
+      : `<span class="noimg" style="display:flex;align-items:center;justify-content:center;background:${(IKON[u.ikon] || IKON.umum).bg}">${(IKON[u.ikon] || IKON.umum).svg.replace('<svg ', '<svg width="28" height="28" ')}</span>`;
+    return `<div class="item">${thumb}
+      <div class="meta"><b>${esc(u.nama)}</b>
+        <small><span class="status-dot" style="background:${JENIS_WARNA[u.status_jenis] || '#999'}"></span>${esc(u.status || '—')} · urutan ${u.urutan}</small>
+        <span class="badge ${u.tampil ? 'on' : 'off'}">${u.tampil ? 'Tampil' : 'Disembunyikan'}</span></div>
+      <div class="acts">
+        <button class="btn alt small" data-edit="${u.id}">Edit</button>
+        <button class="btn danger small" data-del="${u.id}">Hapus</button>
+      </div></div>`;
+  }).join('') : '<p class="empty">Belum ada unit usaha. Halaman memakai isi bawaan.</p>';
+}
+$('#l-unit').addEventListener('click', async e => {
+  const id = e.target.dataset.edit || e.target.dataset.del;
+  const u = unitCache.find(x => x.id === id);
+  if (!u) return;
+  if (e.target.dataset.edit) {
+    $('#u-id').value = u.id;
+    $('#u-nama').value = u.nama;
+    $('#u-status').value = u.status || '';
+    $('#u-jenis').value = u.status_jenis || 'berjalan';
+    $('#u-ikon').value = u.ikon || 'umum';
+    $('#u-urutan').value = u.urutan;
+    $('#u-ringkasan').value = u.ringkasan || '';
+    $('#u-deskripsi').value = u.deskripsi || '';
+    $('#u-fakta').value = faktaKeTeks(u.fakta);
+    $('#u-wa').value = u.wa_pesan || '';
+    $('#u-tampil').checked = u.tampil;
+    $('#u-foto').value = '';
+    $('#u-hapusfoto').checked = false;
+    $('#u-hapusfoto-wrap').hidden = !u.foto_url;
+    $('#u-preview').innerHTML = safeUrl(u.foto_url) ? `<img src="${esc(u.foto_url)}" alt="">` : '';
+    $('#unit-title').textContent = 'Edit unit usaha';
+    $('#f-unit').scrollIntoView({ behavior: 'smooth' });
+  } else if (confirm(`Hapus unit "${u.nama}"?`)) {
+    await busy(e.target, async () => {
+      check(await sb.from('unit_usaha').delete().eq('id', u.id));
+      await hapusFile(u.foto_url);
+      toast('Unit usaha dihapus');
+      await muatUnit();
+    });
+  }
+});
+$('#u-reset').addEventListener('click', resetUnit);
+previewFile($('#u-foto'), $('#u-preview'));
+$('#f-unit').addEventListener('submit', e => {
+  e.preventDefault();
+  busy(e.submitter || $('#f-unit button[type=submit]'), async () => {
+    const id = $('#u-id').value;
+    const lama = unitCache.find(x => x.id === id);
+    const row = {
+      nama: $('#u-nama').value.trim(),
+      status: $('#u-status').value.trim(),
+      status_jenis: $('#u-jenis').value,
+      ikon: $('#u-ikon').value,
+      urutan: parseInt($('#u-urutan').value, 10) || 0,
+      ringkasan: $('#u-ringkasan').value.trim(),
+      deskripsi: $('#u-deskripsi').value.trim(),
+      fakta: teksKeFakta($('#u-fakta').value),
+      wa_pesan: $('#u-wa').value.trim(),
+      tampil: $('#u-tampil').checked,
+    };
+    const f = $('#u-foto').files[0];
+    let fotoLamaDibuang = false;
+    if (f) { row.foto_url = await unggah(f, 'unit'); fotoLamaDibuang = true; }
+    else if ($('#u-hapusfoto').checked) { row.foto_url = null; fotoLamaDibuang = true; }
+    if (id) check(await sb.from('unit_usaha').update(row).eq('id', id));
+    else check(await sb.from('unit_usaha').insert(row));
+    if (fotoLamaDibuang && lama?.foto_url) await hapusFile(lama.foto_url);
+    toast(id ? 'Unit usaha diperbarui' : 'Unit usaha ditambahkan');
+    resetUnit();
+    await muatUnit();
+  });
+});
+
+// ================= RINGKASAN KEUANGAN =================
+let trans = { catatan: '', kolom: [], baris: [] };
+function gambarTabel() {
+  const k = trans.kolom;
+  $('#tr-tabel').innerHTML = `<thead><tr><th>Uraian</th>${k.map((c, i) => `
+      <th><div class="row"><input type="text" data-col="${i}" value="${esc(c)}"><button type="button" class="x" title="Hapus kolom" data-delcol="${i}">×</button></div></th>`).join('')}
+      <th></th><th></th></tr></thead>
+    <tbody>${trans.baris.map((b, r) => `<tr>
+      <td><input type="text" data-r="${r}" data-f="uraian" value="${esc(b.uraian)}"></td>
+      ${k.map((_, i) => `<td><input type="text" data-r="${r}" data-v="${i}" value="${esc((b.nilai || [])[i] ?? '')}"></td>`).join('')}
+      <td><label class="tb"><input type="checkbox" data-r="${r}" data-f="tebal" ${b.tebal ? 'checked' : ''}> Tebal</label></td>
+      <td><button type="button" class="x" title="Hapus baris" data-delrow="${r}">×</button></td>
+    </tr>`).join('')}</tbody>`;
+}
+$('#tr-tabel').addEventListener('input', e => {
+  const el = e.target, d = el.dataset;
+  if (d.col !== undefined) trans.kolom[+d.col] = el.value;
+  else if (d.r !== undefined) {
+    const b = trans.baris[+d.r];
+    if (d.f === 'uraian') b.uraian = el.value;
+    else if (d.f === 'tebal') b.tebal = el.checked;
+    else if (d.v !== undefined) { b.nilai = b.nilai || []; b.nilai[+d.v] = el.value; }
+  }
+});
+$('#tr-tabel').addEventListener('change', e => {
+  if (e.target.dataset.f === 'tebal') trans.baris[+e.target.dataset.r].tebal = e.target.checked;
+});
+$('#tr-tabel').addEventListener('click', e => {
+  const d = e.target.dataset;
+  if (d.delrow !== undefined) { trans.baris.splice(+d.delrow, 1); gambarTabel(); }
+  if (d.delcol !== undefined && confirm(`Hapus kolom "${trans.kolom[+d.delcol]}"?`)) {
+    trans.kolom.splice(+d.delcol, 1);
+    trans.baris.forEach(b => (b.nilai || []).splice(+d.delcol, 1));
+    gambarTabel();
+  }
+});
+$('#tr-addrow').addEventListener('click', () => {
+  trans.baris.push({ uraian: '', nilai: trans.kolom.map(() => ''), tebal: false });
+  gambarTabel();
+});
+$('#tr-addcol').addEventListener('click', () => {
+  const last = trans.kolom[trans.kolom.length - 1] || '';
+  const m = last.match(/(\d{4})/);
+  trans.kolom.push(m ? last.replace(m[1], String(+m[1] + 1)) : `Tahun ${new Date().getFullYear()}`);
+  trans.baris.forEach(b => { b.nilai = b.nilai || []; b.nilai.push(''); });
+  gambarTabel();
+});
+async function muatTrans() {
+  const row = check(await sb.from('pengaturan').select('nilai').eq('kunci', 'transparansi').maybeSingle());
+  const t = row?.nilai || {};
+  trans = {
+    catatan: t.catatan || '',
+    kolom: Array.isArray(t.kolom) ? t.kolom : ['Tahun 2025', 'Tahun 2026'],
+    baris: Array.isArray(t.baris) ? t.baris : [],
+  };
+  $('#tr-catatan').value = trans.catatan;
+  gambarTabel();
+}
+$('#f-trans').addEventListener('submit', e => {
+  e.preventDefault();
+  busy(e.submitter || $('#f-trans button[type=submit]'), async () => {
+    trans.catatan = $('#tr-catatan').value.trim();
+    trans.baris = trans.baris.filter(b => (b.uraian || '').trim() || (b.nilai || []).some(v => String(v || '').trim()));
+    trans.baris.forEach(b => { b.nilai = trans.kolom.map((_, i) => (b.nilai || [])[i] ?? ''); });
+    check(await sb.from('pengaturan').upsert([{ kunci: 'transparansi', nilai: trans, diperbarui: new Date().toISOString() }]));
+    gambarTabel();
+    toast('Ringkasan keuangan disimpan');
+  });
+});
+
 // ================= PENGATURAN =================
 async function muatPengaturan() {
   const rows = check(await sb.from('pengaturan').select('kunci,nilai'));
@@ -355,7 +524,7 @@ async function masukDasbor(session) {
   if (!ok) { show('denied'); return; }
   show('app');
   resetBerita();
-  await Promise.all([muatBerita(), muatGaleri(), muatPengurus(), muatDokumen(), muatPengaturan()])
+  await Promise.all([muatBerita(), muatGaleri(), muatUnit(), muatPengurus(), muatDokumen(), muatTrans(), muatPengaturan()])
     .catch(e => toast('Gagal memuat data: ' + e.message, true));
 }
 

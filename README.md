@@ -26,5 +26,7 @@ Selama Supabase belum diisi di `js/config.js`, website menampilkan isi bawaan di
    Jangan pernah memakai *service_role / secret key* di website.
 6. Commit → Cloudflare deploy otomatis. Buka `/admin/` dan login.
 
+**Setiap kali `schema.sql` diperbarui** (misalnya fitur baru), jalankan ulang seluruh isinya di SQL Editor. File ini aman dijalankan berulang dan tidak menghapus data yang sudah ada.
+
 ## Deploy
 Cloudflare (Workers & Pages) terhubung ke branch `main`; setiap push ter-deploy otomatis. Tidak ada build command.

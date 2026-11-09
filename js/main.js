@@ -7,12 +7,12 @@ window.WA_NUMBER = window.WA_NUMBER || "6289660279551";
 const menu = document.getElementById('menu');
 document.querySelector('.menu-btn')?.addEventListener('click', () => menu.classList.toggle('open'));
 
-// Tombol/tautan WhatsApp (elemen dengan atribut data-wa="pesan awal")
-document.querySelectorAll('[data-wa]').forEach(el => {
-  el.addEventListener('click', e => {
-    e.preventDefault();
-    openWA(el.dataset.wa || 'Halo BUM Desa Bahtera Nusantara');
-  });
+// Tombol/tautan WhatsApp (elemen dengan atribut data-wa="pesan awal"), juga untuk elemen yang ditambahkan belakangan
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-wa]');
+  if (!el) return;
+  e.preventDefault();
+  openWA(el.dataset.wa || 'Halo BUM Desa Bahtera Nusantara');
 });
 
 function openWA(text) {

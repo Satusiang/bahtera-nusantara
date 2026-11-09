@@ -73,12 +73,29 @@ create table if not exists public.dokumen (
   dibuat timestamptz not null default now()
 );
 
+-- ---------- Unit usaha ----------
+create table if not exists public.unit_usaha (
+  id uuid primary key default gen_random_uuid(),
+  nama text not null,
+  status text not null default '',                -- label bebas, mis. 'Musim tanam 2026'
+  status_jenis text not null default 'berjalan' check (status_jenis in ('berjalan','rintisan','rencana')),
+  ikon text not null default 'umum',              -- padi, ayam, ikan, sayur, ternak, toko, umum
+  foto_url text,
+  ringkasan text not null default '',             -- teks pendek untuk kartu di Beranda
+  deskripsi text not null default '',             -- teks lengkap di halaman Unit Usaha
+  fakta jsonb not null default '[]'::jsonb,       -- [{"label":"Luas lahan","nilai":"1 ha"}]
+  wa_pesan text not null default '',
+  urutan int not null default 0,
+  tampil boolean not null default true,
+  dibuat timestamptz not null default now()
+);
+
 -- ---------- Hak akses Data API ----------
 -- Diperlukan bila opsi "Automatically expose new tables" dimatikan saat membuat project.
 -- Siapa boleh melihat/mengubah baris tetap diatur oleh RLS di bawah.
 grant usage on schema public to anon, authenticated;
-grant select on public.pengaturan, public.pengurus, public.berita, public.galeri, public.dokumen to anon, authenticated;
-grant insert, update, delete on public.pengaturan, public.pengurus, public.berita, public.galeri, public.dokumen to authenticated;
+grant select on public.pengaturan, public.pengurus, public.berita, public.galeri, public.dokumen, public.unit_usaha to anon, authenticated;
+grant insert, update, delete on public.pengaturan, public.pengurus, public.berita, public.galeri, public.dokumen, public.unit_usaha to authenticated;
 
 -- ---------- Row Level Security ----------
 alter table public.pengaturan enable row level security;
@@ -86,15 +103,16 @@ alter table public.pengurus   enable row level security;
 alter table public.berita     enable row level security;
 alter table public.galeri     enable row level security;
 alter table public.dokumen    enable row level security;
+alter table public.unit_usaha enable row level security;
 
 do $$
 declare t text;
 begin
-  foreach t in array array['pengaturan','pengurus','galeri','dokumen'] loop
+  foreach t in array array['pengaturan','pengurus','galeri','dokumen','unit_usaha'] loop
     execute format('drop policy if exists "baca publik" on public.%I', t);
     execute format('create policy "baca publik" on public.%I for select using (true)', t);
   end loop;
-  foreach t in array array['pengaturan','pengurus','berita','galeri','dokumen'] loop
+  foreach t in array array['pengaturan','pengurus','berita','galeri','dokumen','unit_usaha'] loop
     execute format('drop policy if exists "admin kelola" on public.%I', t);
     execute format('create policy "admin kelola" on public.%I for all to authenticated using (public.is_admin()) with check (public.is_admin())', t);
   end loop;
@@ -141,6 +159,37 @@ on conflict (kunci) do nothing;
 insert into public.pengurus (nama, jabatan, urutan)
 select * from (values ('Caum','Penasihat (Kepala Desa)',1), ('Johandi','Direktur',2)) v(nama, jabatan, urutan)
 where not exists (select 1 from public.pengurus);
+
+insert into public.pengaturan (kunci, nilai) values
+  ('transparansi', jsonb_build_object(
+      'catatan', 'Isi angka sesuai laporan yang sudah disahkan.',
+      'kolom', jsonb_build_array('Tahun 2025', 'Tahun 2026'),
+      'baris', jsonb_build_array(
+        jsonb_build_object('uraian','Penyertaan modal desa','nilai',jsonb_build_array('','') ,'tebal',false),
+        jsonb_build_object('uraian','Pendapatan usaha','nilai',jsonb_build_array('',''),'tebal',false),
+        jsonb_build_object('uraian','Biaya operasional','nilai',jsonb_build_array('',''),'tebal',false),
+        jsonb_build_object('uraian','Kontribusi ke PADes','nilai',jsonb_build_array('',''),'tebal',true))))
+on conflict (kunci) do nothing;
+
+insert into public.unit_usaha (nama, status, status_jenis, ikon, ringkasan, deskripsi, fakta, wa_pesan, urutan)
+select * from (values
+  ('Pertanian Pangan', 'Berjalan', 'berjalan', 'padi',
+   'Budi daya tanaman pangan di lahan desa untuk mencukupi kebutuhan warga.',
+   'Unit pertanian mengelola lahan desa untuk budi daya tanaman pangan dengan cara yang efisien dan mudah diikuti petani setempat. Hasil panen diprioritaskan untuk kebutuhan warga dan pasar sekitar.',
+   '[{"label":"Bidang","nilai":"Tanaman pangan"},{"label":"Lokasi","nilai":"Desa Karang Bahagia"}]'::jsonb,
+   'Halo BUM Desa Bahtera Nusantara, saya ingin bertanya tentang hasil pertanian.', 1),
+  ('Peternakan', 'Rintisan', 'rintisan', 'ayam',
+   'Peternakan skala desa yang menghasilkan pangan bergizi sekaligus pupuk organik.',
+   'Unit peternakan dirintis untuk menyediakan sumber protein yang terjangkau bagi warga. Limbah ternak diolah menjadi pupuk organik untuk mendukung pertanian desa.',
+   '[{"label":"Hasil","nilai":"Telur & pupuk organik"}]'::jsonb,
+   'Halo BUM Desa Bahtera Nusantara, saya ingin bertanya tentang hasil peternakan.', 2),
+  ('Perikanan', 'Dalam pengusulan', 'rencana', 'ikan',
+   'Rencana budi daya ikan air tawar untuk memperkuat pasokan protein desa.',
+   'Unit perikanan disiapkan untuk budi daya ikan air tawar di lahan desa, sebagai sumber protein dan peluang usaha baru bagi warga.',
+   '[{"label":"Komoditas","nilai":"Ikan air tawar"}]'::jsonb,
+   'Halo BUM Desa Bahtera Nusantara, saya ingin bertanya tentang perikanan.', 3)
+) v(nama, status, status_jenis, ikon, ringkasan, deskripsi, fakta, wa_pesan, urutan)
+where not exists (select 1 from public.unit_usaha);
 
 -- ---------- Admin ----------
 -- Ganti / tambah email admin di sini. Akun dengan email ini harus juga dibuat di

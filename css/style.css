@@ -206,3 +206,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .empty{color:var(--muted);padding:20px 0}
 
 [data-bind="sejarah"],[data-bind="visi"]{white-space:pre-line}
+.unit .top.has-foto,.unit-detail .visual.has-foto{padding:0;overflow:hidden;background:var(--bg)}
+.unit .top.has-foto img,.unit-detail .visual.has-foto img{width:100%;height:100%;object-fit:cover}
+.unit-detail p{margin-bottom:10px}
+.table-scroll{overflow-x:auto}
