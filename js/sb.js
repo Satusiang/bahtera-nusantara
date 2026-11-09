@@ -54,15 +54,53 @@ export function waLocal(n) {
   return d.replace(/^(\d{4})(\d{4})(\d+)$/, '$1-$2-$3');
 }
 
-// Ambil src dari kode sematan Google Maps; hanya terima google.com/maps/embed
-export function mapsSrc(code) {
-  const m = String(code || '').match(/src=["']([^"']+)["']/);
-  const src = m ? m[1] : String(code || '').trim();
-  try {
-    const u = new URL(src);
-    if (u.protocol === 'https:' && /(^|\.)google\.[a-z.]+$/.test(u.hostname) && u.pathname.startsWith('/maps/embed')) return u.href;
-  } catch { /* abaikan */ }
-  return '';
+// Baca isian peta dari admin: kode sematan, link Google Maps, koordinat, atau alamat.
+// Hasil: { embed: URL iframe atau '', link: URL untuk tombol "Buka di Google Maps" atau '' }
+export function mapsInfo(input) {
+  const raw = String(input || '').trim();
+  if (!raw) return { embed: '', link: '' };
+  const q = (v) => `https://www.google.com/maps?q=${encodeURIComponent(v)}&output=embed`;
+  const coord = /(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/;
+
+  // 1) kode sematan <iframe src="...">
+  const m = raw.match(/src=["']([^"']+)["']/);
+  const text = m ? m[1].replace(/&amp;/g, '&') : raw;
+
+  let u = null;
+  try { u = new URL(text); } catch { /* bukan URL */ }
+
+  if (!u) {
+    // 2) koordinat "-6.2006, 107.2002" atau alamat biasa
+    const c = text.match(coord);
+    const target = c ? `${c[1]},${c[2]}` : text;
+    return { embed: q(target), link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(target)}` };
+  }
+  if (u.protocol !== 'https:') return { embed: '', link: '' };
+  const host = u.hostname;
+  const isGoogle = /(^|\.)google\.[a-z.]+$/.test(host);
+
+  // 3) sudah berupa URL sematan
+  if (isGoogle && (u.pathname.startsWith('/maps/embed') || u.searchParams.get('output') === 'embed')) {
+    return { embed: u.href, link: '' };
+  }
+  // 4) link Google Maps biasa: ambil koordinat / kata kunci
+  if (isGoogle && u.pathname.startsWith('/maps')) {
+    const d = u.href.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);        // titik tempat yang dipilih
+    const at = u.pathname.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);       // tengah layar peta
+    const place = u.pathname.match(/\/maps\/place\/([^/]+)/);
+    const qq = u.searchParams.get('q') || u.searchParams.get('query');
+    let target = '';
+    if (d) target = `${d[1]},${d[2]}`;
+    else if (qq) target = qq;
+    else if (place) target = decodeURIComponent(place[1].replace(/\+/g, ' '));
+    else if (at) target = `${at[1]},${at[2]}`;
+    return { embed: target ? q(target) : '', link: u.href };
+  }
+  // 5) link pendek (maps.app.goo.gl / goo.gl/maps): tidak bisa disematkan, tampilkan tombol saja
+  if (host === 'maps.app.goo.gl' || (host === 'goo.gl' && u.pathname.startsWith('/maps'))) {
+    return { embed: '', link: u.href };
+  }
+  return { embed: '', link: '' };
 }
 
 export function ringkas(teks, n = 140) {

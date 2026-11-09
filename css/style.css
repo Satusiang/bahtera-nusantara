@@ -210,3 +210,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .unit .top.has-foto img,.unit-detail .visual.has-foto img{width:100%;height:100%;object-fit:cover}
 .unit-detail p{margin-bottom:10px}
 .table-scroll{overflow-x:auto}
+.map.has-map{padding:0;position:relative;display:block}
+.map .map-btn{position:relative}
+.map.has-map .map-btn{position:absolute;left:14px;bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.18)}

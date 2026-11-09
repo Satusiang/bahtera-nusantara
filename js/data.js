@@ -1,6 +1,6 @@
 // Mengisi halaman publik dengan data dari Supabase.
 // Jika Supabase belum dikonfigurasi atau gagal dihubungi, isi statis di HTML tetap tampil.
-import { getClient, esc, safeUrl, tanggalID, waIntl, waLocal, mapsSrc, ringkas, IKON, STATUS_KELAS, slug } from './sb.js';
+import { getClient, esc, safeUrl, tanggalID, waIntl, waLocal, mapsInfo, ringkas, IKON, STATUS_KELAS, slug } from './sb.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -41,10 +41,15 @@ async function muatPengaturan(sb) {
   setText('alamat', k.alamat);
   setText('jam', k.jam);
   const peta = $('#peta');
-  const src = mapsSrc(k.maps_embed);
-  if (peta && src) {
-    peta.innerHTML = `<iframe src="${esc(src)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta lokasi BUM Desa"></iframe>`;
-    peta.style.padding = '0';
+  const mp = mapsInfo(k.maps_embed);
+  if (peta && (mp.embed || mp.link)) {
+    const tombol = mp.link ? `<a class="btn map-btn" href="${esc(mp.link)}" target="_blank" rel="noopener">📍 Buka di Google Maps</a>` : '';
+    if (mp.embed) {
+      peta.innerHTML = `<iframe src="${esc(mp.embed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta lokasi BUM Desa" allowfullscreen></iframe>${tombol}`;
+      peta.classList.add('has-map');
+    } else {
+      peta.innerHTML = `<b style="color:var(--navy)">Lokasi kantor BUM Desa</b>${tombol}`;
+    }
   }
 
   setText('sejarah', p.sejarah);
