@@ -43,6 +43,7 @@ async function muatPengaturan(sb) {
   const peta = $('#peta');
   const mp = mapsInfo(k.maps_embed);
   if (peta && (mp.embed || mp.link)) {
+    peta.hidden = false;
     const tombol = mp.link ? `<a class="btn map-btn" href="${esc(mp.link)}" target="_blank" rel="noopener">📍 Buka di Google Maps</a>` : '';
     if (mp.embed) {
       peta.innerHTML = `<iframe src="${esc(mp.embed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta lokasi BUM Desa" allowfullscreen></iframe>${tombol}`;

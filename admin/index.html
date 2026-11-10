@@ -40,6 +40,33 @@
       <label>Password<input type="password" id="l-pass" autocomplete="current-password" required></label>
       <button class="btn" type="submit">Masuk</button>
       <p class="err" id="l-err"></p>
+      <p class="ok" id="l-ok"></p>
+      <a href="#" class="link" id="to-forgot">Lupa password?</a>
+    </form>
+  </section>
+
+  <!-- Lupa password -->
+  <section id="v-forgot" class="panel narrow" hidden>
+    <h1>Lupa password</h1>
+    <p class="muted">Masukkan email admin. Kami kirim tautan untuk membuat password baru.</p>
+    <form id="f-forgot" class="form">
+      <label>Email<input type="email" id="fg-email" autocomplete="username" required></label>
+      <button class="btn" type="submit">Kirim tautan reset</button>
+      <p class="err" id="fg-err"></p>
+      <p class="ok" id="fg-ok"></p>
+      <a href="#" class="link" id="to-login">← Kembali ke halaman masuk</a>
+    </form>
+  </section>
+
+  <!-- Atur password baru -->
+  <section id="v-reset" class="panel narrow" hidden>
+    <h1>Buat password baru</h1>
+    <p class="muted" id="rs-who"></p>
+    <form id="f-reset" class="form">
+      <label>Password baru<input type="password" id="rs-pass" autocomplete="new-password" minlength="8" required></label>
+      <label>Ulangi password baru<input type="password" id="rs-pass2" autocomplete="new-password" minlength="8" required></label>
+      <button class="btn" type="submit">Simpan password</button>
+      <p class="err" id="rs-err"></p>
     </form>
   </section>
 

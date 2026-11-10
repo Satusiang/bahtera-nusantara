@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kontak – BUM Desa Bahtera Nusantara</title>
 <meta name="description" content="Kontak dan lokasi BUM Desa Bahtera Nusantara, Desa Karang Bahagia, Kabupaten Bekasi.">
+<meta name="theme-color" content="#0c2a4d">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="id_ID">
+<meta property="og:site_name" content="BUM Desa Bahtera Nusantara">
+<meta property="og:title" content="Kontak – BUM Desa Bahtera Nusantara">
+<meta property="og:description" content="Kontak dan lokasi BUM Desa Bahtera Nusantara, Desa Karang Bahagia, Kabupaten Bekasi.">
+<meta property="og:url" content="https://bahtera-nusantara.bumdes-karangbahagia.workers.dev/kontak">
+<meta property="og:image" content="https://bahtera-nusantara.bumdes-karangbahagia.workers.dev/assets/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="BUM Desa Bahtera Nusantara, Desa Karang Bahagia, Kabupaten Bekasi">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -43,10 +55,10 @@
         <span class="eyebrow" style="color:#7fe0c0">Kontak</span>
         <h2>Mari bekerja sama</h2>
         <div class="info">
-          <div><span class="ico">📍</span><span><small>Alamat</small><span data-bind="alamat"><span class="ph">[alamat kantor BUM Desa]</span></span>, Desa Karang Bahagia, Kec. Karang Bahagia, Kab. Bekasi</span></div>
+          <div><span class="ico">📍</span><span><small>Alamat</small><span data-bind="alamat">Jl. Buyut Kaifah No. 44, Kp. Pulo Bambu</span>, Desa Karang Bahagia, Kec. Karang Bahagia, Kab. Bekasi</span></div>
           <div><span class="ico">💬</span><span><small>WhatsApp</small><a data-bind="wa" href="https://wa.me/6289660279551" target="_blank" rel="noopener" style="color:#fff">0896-6027-9551</a></span></div>
           <div><span class="ico">✉️</span><span><small>Email</small><a data-bind="email" href="mailto:bahteranusantara9@gmail.com" style="color:#fff">bahteranusantara9@gmail.com</a></span></div>
-          <div><span class="ico">🕘</span><span><small>Jam layanan</small><span data-bind="jam"><span class="ph">[Senin–Jumat, 08.00–15.00]</span></span></span></div>
+          <div><span class="ico">🕘</span><span><small>Jam layanan</small><span data-bind="jam">08:00 - 15:00</span></span></div>
         </div>
       </div>
       <form id="f">
@@ -58,11 +70,7 @@
       </form>
     </div>
 
-    <div class="map" id="peta">
-      <!-- Peta diisi dari halaman admin (Kontak & Profil → kode sematan Google Maps) -->
-      <b style="color:var(--navy)">Peta lokasi kantor BUM Desa</b>
-      <span><span class="ph">[tempel kode sematan Google Maps di sini]</span></span>
-    </div>
+    <div class="map" id="peta" hidden></div>
   </div>
 </section>
 

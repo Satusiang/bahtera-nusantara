@@ -15,7 +15,7 @@ function toast(msg, isErr = false) {
 }
 
 function show(view) {
-  ['noconfig', 'login', 'denied', 'app'].forEach(v => { $('#v-' + v).hidden = v !== view; });
+  ['noconfig', 'login', 'forgot', 'reset', 'denied', 'app'].forEach(v => { $('#v-' + v).hidden = v !== view; });
 }
 
 async function busy(btn, fn) {
@@ -544,11 +544,88 @@ $('#btn-logout').addEventListener('click', async () => {
   location.reload();
 });
 
+// ================= LUPA PASSWORD =================
+const PESAN_ERROR = {
+  'over_email_send_rate_limit': 'Batas kirim email tercapai. Coba lagi sekitar 1 jam lagi.',
+  'email_address_not_authorized': 'Email ini belum bisa menerima email dari Supabase. Lihat panduan di README (SMTP).',
+  'otp_expired': 'Tautan reset sudah kedaluwarsa atau sudah pernah dipakai. Minta tautan baru.',
+};
+function pesanError(err) {
+  const code = err?.code || '';
+  if (PESAN_ERROR[code]) return PESAN_ERROR[code];
+  if (/rate limit/i.test(err?.message || '')) return PESAN_ERROR.over_email_send_rate_limit;
+  if (/not authorized/i.test(err?.message || '')) return PESAN_ERROR.email_address_not_authorized;
+  return err?.message || String(err);
+}
+
+$('#to-forgot').addEventListener('click', e => {
+  e.preventDefault();
+  $('#fg-email').value = $('#l-email').value;
+  $('#fg-err').textContent = ''; $('#fg-ok').textContent = '';
+  show('forgot');
+});
+$('#to-login').addEventListener('click', e => { e.preventDefault(); show('login'); });
+
+$('#f-forgot').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('#fg-err').textContent = ''; $('#fg-ok').textContent = '';
+  const btn = $('#f-forgot button');
+  btn.disabled = true;
+  const { error } = await sb.auth.resetPasswordForEmail($('#fg-email').value.trim(), {
+    redirectTo: location.origin + location.pathname,
+  });
+  btn.disabled = false;
+  if (error) { $('#fg-err').textContent = pesanError(error); return; }
+  $('#fg-ok').textContent = 'Jika email terdaftar, tautan reset sudah dikirim. Cek kotak masuk dan folder spam.';
+});
+
+$('#f-reset').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('#rs-err').textContent = '';
+  const p1 = $('#rs-pass').value, p2 = $('#rs-pass2').value;
+  if (p1.length < 8) { $('#rs-err').textContent = 'Password minimal 8 karakter.'; return; }
+  if (p1 !== p2) { $('#rs-err').textContent = 'Kedua password tidak sama.'; return; }
+  const btn = $('#f-reset button');
+  btn.disabled = true;
+  const { error } = await sb.auth.updateUser({ password: p1 });
+  btn.disabled = false;
+  if (error) { $('#rs-err').textContent = pesanError(error); return; }
+  toast('Password baru tersimpan');
+  const { data } = await sb.auth.getSession();
+  if (data.session) await masukDasbor(data.session); else show('login');
+});
+
+function tampilkanReset(session) {
+  $('#rs-who').textContent = session?.user?.email ? `Akun: ${session.user.email}` : '';
+  show('reset');
+}
+
 (async () => {
   if (!isConfigured()) { show('noconfig'); return; }
+
+  // Baca tanda dari tautan email SEBELUM Supabase membersihkan alamat
+  const hash = new URLSearchParams(location.hash.slice(1));
+  const query = new URLSearchParams(location.search);
+  let modeReset = hash.get('type') === 'recovery' || query.get('type') === 'recovery';
+  const errDesc = hash.get('error_description') || query.get('error_description');
+  const errCode = hash.get('error_code') || query.get('error_code');
+
   try { sb = await getClient(); }
   catch (e) { show('noconfig'); $('#v-noconfig p').textContent = 'Gagal memuat Supabase: ' + e.message; return; }
+
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') { modeReset = true; tampilkanReset(session); }
+  });
+
   const { data } = await sb.auth.getSession();
+  if (location.hash || query.has('code')) history.replaceState(null, '', location.pathname);
+
+  if (errDesc) {
+    show('login');
+    $('#l-err').textContent = PESAN_ERROR[errCode] || decodeURIComponent(errDesc.replace(/\+/g, ' '));
+    return;
+  }
+  if (modeReset && data.session) { tampilkanReset(data.session); return; }
   if (data.session) await masukDasbor(data.session);
   else show('login');
 })();

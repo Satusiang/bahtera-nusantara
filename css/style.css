@@ -223,3 +223,4 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   .contact .info{font-size:.93rem}
   .contact .info div{gap:12px}
 }
+.map[hidden]{display:none}
