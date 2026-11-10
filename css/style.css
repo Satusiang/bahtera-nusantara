@@ -213,3 +213,13 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .map.has-map{padding:0;position:relative;display:block}
 .map .map-btn{position:relative}
 .map.has-map .map-btn{position:absolute;left:14px;bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+
+/* Kontak: cegah kolom melebar di HP karena teks panjang (email/alamat) */
+.contact > *{min-width:0}
+.contact .info div > span:last-child{min-width:0;overflow-wrap:anywhere}
+.contact form{width:100%}
+@media (max-width:480px){
+  .contact{padding:28px 20px}
+  .contact .info{font-size:.93rem}
+  .contact .info div{gap:12px}
+}
