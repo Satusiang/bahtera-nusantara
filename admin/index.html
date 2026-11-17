@@ -7,7 +7,7 @@
 <title>Admin – BUM Desa Bahtera Nusantara</title>
 <link rel="icon" href="../assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <link rel="stylesheet" href="admin.css">
 </head>
@@ -145,14 +145,14 @@
             </label>
           </div>
           <div class="row wrap-row">
-            <label class="grow">Ikon (jika tanpa foto)
+            <label class="grow">Ikon (penanda di daftar admin)
               <select id="u-ikon"><option value="padi">🌾 Padi / tanaman pangan</option><option value="sayur">🥬 Sayur / hortikultura</option><option value="ayam">🥚 Unggas / telur</option><option value="ternak">🐄 Ternak besar</option><option value="ikan">🐟 Perikanan</option><option value="toko">🏪 Toko / jasa</option><option value="umum">🌐 Umum</option></select>
             </label>
             <label>Urutan<input type="number" id="u-urutan" value="10" min="0" style="width:90px"></label>
           </div>
-          <label>Foto (opsional, menggantikan ikon)<input type="file" id="u-foto" accept="image/*"></label>
+          <label>Foto (opsional, tampil di halaman Unit Usaha)<input type="file" id="u-foto" accept="image/*"></label>
           <div class="preview" id="u-preview"></div>
-          <label class="check" id="u-hapusfoto-wrap" hidden><input type="checkbox" id="u-hapusfoto"> Hapus foto, kembali pakai ikon</label>
+          <label class="check" id="u-hapusfoto-wrap" hidden><input type="checkbox" id="u-hapusfoto"> Hapus foto</label>
           <label>Ringkasan (untuk kartu di Beranda)<textarea id="u-ringkasan" rows="2" maxlength="200"></textarea></label>
           <label>Deskripsi lengkap<textarea id="u-deskripsi" rows="6" placeholder="Pisahkan paragraf dengan baris kosong."></textarea></label>
           <label>Rincian singkat (satu per baris, format "Label: Nilai")

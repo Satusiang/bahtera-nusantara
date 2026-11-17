@@ -8,46 +8,86 @@
 <meta name="theme-color" content="#0c2a4d">
 <link rel="icon" href="/assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-<header>
-  <div class="wrap nav">
-    <a href="/"><img src="/assets/logo.png" alt="Logo BUM Desa Bahtera Nusantara"></a>
-    <a class="btn green" href="/kontak">Hubungi Kami</a>
+<a class="skip" href="#isi">Langsung ke isi</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="/"><img src="/assets/logo.png" alt="BUM Desa Bahtera Nusantara, ke Beranda" width="74" height="40"></a>
+    <a class="btn wa small" href="#" data-wa="Halo BUM Desa Bahtera Nusantara, saya ingin bertanya."><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>WhatsApp</a>
   </div>
+  <nav class="wrap menu" aria-label="Menu utama">
+    <a href="/">Beranda</a>
+    <a href="/profil">Profil</a>
+    <a href="/usaha">Unit Usaha</a>
+    <a href="/kegiatan">Kegiatan</a>
+    <a href="/transparansi">Transparansi</a>
+    <a href="/kontak">Kontak</a>
+  </nav>
 </header>
 
-<section class="page-hero">
+<main id="isi">
+<section class="page-head">
   <div class="wrap">
-    <div class="crumb"><a href="/">Beranda</a> / 404</div>
+    <p class="crumb"><a href="/">Beranda</a> / 404</p>
     <h1>Halaman tidak ditemukan</h1>
-    <p>Alamat yang Anda buka tidak ada atau sudah dipindahkan.</p>
+    <p class="lead">Alamat yang Anda buka tidak ada atau sudah dipindahkan.</p>
   </div>
-  <svg class="wave" viewBox="0 0 1440 90" preserveAspectRatio="none"><path d="M0,50 C240,95 480,0 720,35 C960,70 1200,20 1440,45 L1440,90 L0,90 Z" fill="#fff"/></svg>
 </section>
 
 <section>
   <div class="wrap">
-    <h2>Mungkin Anda mencari:</h2>
-    <ul class="lead" style="padding-left:20px;line-height:2">
-      <li><a class="more" style="margin:0" href="/">Beranda</a></li>
-      <li><a class="more" style="margin:0" href="/profil">Profil BUM Desa</a></li>
-      <li><a class="more" style="margin:0" href="/usaha">Unit Usaha</a></li>
-      <li><a class="more" style="margin:0" href="/kegiatan">Kegiatan &amp; Galeri</a></li>
-      <li><a class="more" style="margin:0" href="/transparansi">Transparansi</a></li>
-      <li><a class="more" style="margin:0" href="/kontak">Kontak</a></li>
-    </ul>
+    <div class="section-head"><h2>Mungkin Anda mencari</h2></div>
+    <div class="unit-rows">
+      <a class="unit-row" href="/"><div class="name"><h3>Beranda</h3></div></a>
+      <a class="unit-row" href="/usaha"><div class="name"><h3>Unit usaha</h3></div></a>
+      <a class="unit-row" href="/kontak"><div class="name"><h3>Kontak</h3></div></a>
+    </div>
   </div>
 </section>
+</main>
 
-<footer>
+<footer class="site-footer">
   <div class="wrap">
-    <img src="/assets/logo.png" alt="BUM Desa Bahtera Nusantara">
-    <span>© 2026 BUM Desa Bahtera Nusantara · Desa Karang Bahagia, Kecamatan Karang Bahagia, Kabupaten Bekasi</span>
+    <div class="cta-band">
+      <h2>Mari tumbuh bersama desa.</h2>
+      <a class="btn light" href="#" data-wa="Halo BUM Desa Bahtera Nusantara, saya ingin bertanya."><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>Tanya lewat WhatsApp</a>
+    </div>
+    <div class="cols">
+      <div>
+        <h4>Alamat</h4>
+        <p data-bind="alamat">Jl. Pulo Bambu RT.02 RW 01, Desa Karang Bahagia, Kec. Karang Bahagia, Kab. Bekasi</p>
+      </div>
+      <div>
+        <h4>WhatsApp</h4>
+        <p><a data-bind="wa" href="https://wa.me/6281515112249" target="_blank" rel="noopener">0815-1511-2249</a></p>
+        <h4 class="next">Email</h4>
+        <p><a data-bind="email" href="mailto:bumdesabahteranusa@gmail.com">bumdesabahteranusa@gmail.com</a></p>
+      </div>
+      <div>
+        <h4>Jam layanan</h4>
+        <p data-bind="jam">08:00 - 15:00</p>
+      </div>
+      <div class="links">
+        <h4>Halaman</h4>
+          <a href="/profil">Profil</a>
+          <a href="/usaha">Unit Usaha</a>
+          <a href="/kegiatan">Kegiatan</a>
+          <a href="/transparansi">Transparansi</a>
+          <a href="/kontak">Kontak</a>
+      </div>
+    </div>
+    <div class="legal-line">
+      <span>© 2026 BUM Desa Bahtera Nusantara</span>
+      <span>Perdes No. 2 Tahun 2025 · AHU 15136.AH.01.33 Tahun 2025</span>
+    </div>
   </div>
 </footer>
+
+<script src="/js/main.js"></script>
 </body>
 </html>

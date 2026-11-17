@@ -1,6 +1,9 @@
 // Mengisi halaman publik dengan data dari Supabase.
 // Jika Supabase belum dikonfigurasi atau gagal dihubungi, isi statis di HTML tetap tampil.
-import { getClient, esc, safeUrl, tanggalID, waIntl, waLocal, mapsInfo, ringkas, IKON, STATUS_KELAS, slug } from './sb.js';
+import { getClient, esc, safeUrl, tanggalID, waIntl, waLocal, mapsInfo, ringkas, STATUS_KELAS, slug } from './sb.js';
+
+const WA_ICON = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>';
+const nomor = i => String(i + 1).padStart(2, '0');
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -11,9 +14,9 @@ function setText(key, value) {
 
 function kartuBerita(b) {
   const foto = safeUrl(b.foto_url);
-  const img = foto ? `<img src="${esc(foto)}" alt="" loading="lazy">` : 'BUM Desa Bahtera Nusantara';
+  const img = foto ? `<div class="img"><img src="${esc(foto)}" alt="" loading="lazy"></div>` : '';
   return `<article><a class="card-link" href="berita.html?id=${encodeURIComponent(b.id)}">
-    <div class="img">${img}</div>
+    ${img}
     <div class="txt"><time>${esc(tanggalID(b.tanggal))}</time><h3>${esc(b.judul)}</h3><p>${esc(ringkas(b.isi))}</p></div>
   </a></article>`;
 }
@@ -46,7 +49,7 @@ async function muatPengaturan(sb) {
   const mp = mapsInfo(k.maps_embed);
   if (peta && (mp.embed || mp.link)) {
     peta.hidden = false;
-    const tombol = mp.link ? `<a class="btn map-btn" href="${esc(mp.link)}" target="_blank" rel="noopener">📍 Buka di Google Maps</a>` : '';
+    const tombol = mp.link ? `<a class="btn map-btn" href="${esc(mp.link)}" target="_blank" rel="noopener">Buka di Google Maps</a>` : '';
     if (mp.embed) {
       peta.innerHTML = `<iframe src="${esc(mp.embed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta lokasi BUM Desa" allowfullscreen></iframe>${tombol}`;
       peta.classList.add('has-map');
@@ -163,36 +166,26 @@ async function muatUnitUsaha(sb) {
   if (error || !data || !data.length) return;
   jumlah.forEach(el => { el.textContent = `${data.length} bidang`; });
 
-  const visual = (u, cls) => {
-    const ik = IKON[u.ikon] || IKON.umum;
-    const foto = safeUrl(u.foto_url);
-    return foto
-      ? `<div class="${cls} has-foto"><img src="${esc(foto)}" alt="${esc(u.nama)}" loading="lazy"></div>`
-      : `<div class="${cls}" style="background:${ik.bg}">${ik.svg}</div>`;
-  };
   const status = u => u.status ? `<span class="status ${STATUS_KELAS[u.status_jenis] || 's-run'}">${esc(u.status)}</span>` : '';
 
   if (ringkas) {
-    ringkas.innerHTML = data.slice(0, 6).map(u => `
-      <div class="unit">${visual(u, 'top')}
-        <div class="body">${status(u)}<h3>${esc(u.nama)}</h3><p>${esc(u.ringkasan || ringkas_(u.deskripsi))}</p>
-          <a class="more" href="usaha.html#${esc(slug(u.nama))}">Detail →</a></div>
-      </div>`).join('');
+    ringkas.innerHTML = data.slice(0, 6).map((u, i) => `
+      <a class="unit-row" href="usaha.html#${esc(slug(u.nama))}"><span class="no">${nomor(i)}</span><div class="name"><h3>${esc(u.nama)}</h3>${status(u)}</div><p>${esc(u.ringkasan || ringkas_(u.deskripsi))}</p></a>`).join('');
   }
   if (list) {
     list.innerHTML = data.map((u, i) => {
       const fakta = (Array.isArray(u.fakta) ? u.fakta : []).filter(f => f && (f.label || f.nilai));
+      const foto = safeUrl(u.foto_url);
       return `
-      <div class="unit-detail${i % 2 ? ' flip' : ''}" id="${esc(slug(u.nama))}">
-        ${visual(u, 'visual')}
-        <div>
-          ${status(u)}
-          <h3>${esc(u.nama)}</h3>
+      <article class="unit-detail" id="${esc(slug(u.nama))}">
+        <div class="side"><span class="no">${nomor(i)}</span><h2>${esc(u.nama)}</h2>${status(u)}</div>
+        <div class="main">
+          ${foto ? `<div class="foto"><img src="${esc(foto)}" alt="${esc(u.nama)}" loading="lazy"></div>` : ''}
           ${paragraf(u.deskripsi || u.ringkasan)}
           ${fakta.length ? `<div class="facts">${fakta.map(f => `<div><small>${esc(f.label)}</small><b>${esc(f.nilai)}</b></div>`).join('')}</div>` : ''}
-          <a class="btn" href="#" data-wa="${esc(u.wa_pesan || `Halo BUM Desa Bahtera Nusantara, saya ingin bertanya tentang ${u.nama}.`)}">Tanya via WhatsApp</a>
+          <a class="btn wa" href="#" data-wa="${esc(u.wa_pesan || `Halo BUM Desa Bahtera Nusantara, saya ingin bertanya tentang ${u.nama}.`)}">${WA_ICON}Tanya lewat WhatsApp</a>
         </div>
-      </div>`;
+      </article>`;
     }).join('');
     if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
   }
