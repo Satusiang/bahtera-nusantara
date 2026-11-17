@@ -1,0 +1,8 @@
+# File di repo yang tidak perlu ikut dipublikasikan ke website
+README.md
+supabase
+wrangler.jsonc
+.assetsignore
+.git
+node_modules
+.wrangler

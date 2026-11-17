@@ -1,5 +1,5 @@
 // Penghubung ke Supabase, dipakai halaman publik dan halaman admin.
-const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/+esm';
 
 let clientPromise = null;
 

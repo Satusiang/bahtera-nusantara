@@ -1,11 +1,16 @@
 // ====== PENGATURAN ======
 // Nomor WhatsApp cadangan (format 62..., tanpa + atau 0 di depan).
 // Jika Supabase sudah tersambung, nomor diambil dari pengaturan di halaman admin.
-window.WA_NUMBER = window.WA_NUMBER || "6289660279551";
+window.WA_NUMBER = window.WA_NUMBER || "6281515112249";
 
 // Menu HP
 const menu = document.getElementById('menu');
-document.querySelector('.menu-btn')?.addEventListener('click', () => menu.classList.toggle('open'));
+const menuBtn = document.querySelector('.menu-btn');
+menuBtn?.setAttribute('aria-expanded', 'false');
+menuBtn?.setAttribute('aria-controls', 'menu');
+menuBtn?.addEventListener('click', () => {
+  menuBtn.setAttribute('aria-expanded', String(menu.classList.toggle('open')));
+});
 
 // Tombol/tautan WhatsApp (elemen dengan atribut data-wa="pesan awal"), juga untuk elemen yang ditambahkan belakangan
 document.addEventListener('click', e => {

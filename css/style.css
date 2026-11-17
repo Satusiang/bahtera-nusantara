@@ -22,7 +22,8 @@
   .btn{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px;border:0;cursor:pointer;font-size:.95rem}
   .btn:hover{background:var(--navy-2)}
   .btn.alt{background:#fff;color:var(--navy)}
-  .btn.green{background:var(--green)}
+  .btn.green{background:#168455}
+  .btn.green:hover{background:#126e47}
   .menu-btn{display:none;background:none;border:0;font-size:1.6rem;color:var(--navy);cursor:pointer}
 
   /* hero */
@@ -103,7 +104,7 @@
   select option{color:#000}
   .note{font-size:.82rem;color:#a8c3d6}
 
-  footer{padding:40px 0;border-top:1px solid var(--line);margin-top:84px;color:var(--muted);font-size:.9rem}
+  footer{padding:40px 0 104px;border-top:1px solid var(--line);margin-top:84px;color:var(--muted);font-size:.9rem}
   footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
   footer img{height:40px}
 
@@ -223,4 +224,10 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   .contact .info{font-size:.93rem}
   .contact .info div{gap:12px}
 }
-.map[hidden]{display:none}
+.map[hidden],.table-scroll[hidden],section[hidden]{display:none}
+/* Tombol WhatsApp lebih kecil di HP agar tidak banyak menutupi isi */
+@media (max-width:600px){
+  .wa-float{right:14px;bottom:14px;width:50px;height:50px}
+  .wa-float svg{width:26px;height:26px}
+}
+#kabar[hidden] + section{padding-top:84px}

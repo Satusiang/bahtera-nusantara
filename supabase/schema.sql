@@ -140,8 +140,8 @@ create policy "media admin hapus" on storage.objects for delete to authenticated
 -- ---------- Data awal ----------
 insert into public.pengaturan (kunci, nilai) values
   ('kontak', jsonb_build_object(
-      'wa', '089660279551',
-      'email', 'bahteranusantara9@gmail.com',
+      'wa', '081515112249',
+      'email', 'bumdesabahteranusa@gmail.com',
       'alamat', '',
       'jam', '',
       'maps_embed', '')),

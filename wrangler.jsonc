@@ -1,0 +1,13 @@
+// Pengaturan Cloudflare Workers (situs statis, tanpa build).
+// "name" harus sama dengan nama Worker di dashboard Cloudflare.
+{
+  "name": "bahtera-nusantara",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": ".",
+    // Tampilkan 404.html untuk alamat yang tidak ada (sebelumnya halaman putih kosong)
+    "not_found_handling": "404-page"
+  },
+  // Wajib ada (boleh kosong) agar build branch selain main ("npx wrangler preview") berhasil
+  "previews": {}
+}
