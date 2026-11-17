@@ -20,69 +20,101 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<header>
-  <div class="wrap nav">
-    <a href="index.html"><img src="assets/logo.png" alt="Logo BUM Desa Bahtera Nusantara"></a>
-    <ul id="menu">
-      <li><a href="profil.html">Profil</a></li>
-      <li><a href="usaha.html">Unit Usaha</a></li>
-      <li><a href="kegiatan.html">Kegiatan</a></li>
-      <li><a href="transparansi.html">Transparansi</a></li>
-      <li><a href="kontak.html" class="active">Kontak</a></li>
-    </ul>
-    <a class="btn green" href="kontak.html">Hubungi Kami</a>
-    <button class="menu-btn" aria-label="Menu">☰</button>
+<a class="skip" href="#isi">Langsung ke isi</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="index.html"><img src="assets/logo.png" alt="BUM Desa Bahtera Nusantara, ke Beranda" width="74" height="40"></a>
+    <a class="btn wa small" href="#" data-wa="Halo BUM Desa Bahtera Nusantara, saya ingin bertanya."><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>WhatsApp</a>
   </div>
+  <nav class="wrap menu" aria-label="Menu utama">
+    <a href="index.html">Beranda</a>
+    <a href="profil.html">Profil</a>
+    <a href="usaha.html">Unit Usaha</a>
+    <a href="kegiatan.html">Kegiatan</a>
+    <a href="transparansi.html">Transparansi</a>
+    <a href="kontak.html" aria-current="page">Kontak</a>
+  </nav>
 </header>
 
-<section class="page-hero">
+<main id="isi">
+<section class="page-head">
   <div class="wrap">
-    <div class="crumb"><a href="index.html">Beranda</a> / Kontak</div>
-    <h1>Hubungi Kami</h1>
-    <p>Untuk pemesanan produk, kemitraan, atau informasi program BUM Desa.</p>
+    <p class="crumb"><a href="index.html">Beranda</a> / Kontak</p>
+    <h1>Hubungi kami</h1>
+    <p class="lead">Untuk pemesanan produk, kemitraan, atau informasi program BUM Desa.</p>
   </div>
-  <svg class="wave" viewBox="0 0 1440 90" preserveAspectRatio="none"><path d="M0,50 C240,95 480,0 720,35 C960,70 1200,20 1440,45 L1440,90 L0,90 Z" fill="#fff"/></svg>
 </section>
 
 <section>
   <div class="wrap">
     <div class="contact">
       <div>
-        <span class="eyebrow" style="color:#7fe0c0">Kontak</span>
-        <h2>Mari bekerja sama</h2>
+        <h2 class="sr-only">Kontak</h2>
         <div class="info">
-          <div><span class="ico">📍</span><span><small>Alamat</small><span data-bind="alamat">Jl. Pulo Bambu RT.02 RW 01, Desa Karang Bahagia, Kec. Karang Bahagia, Kab. Bekasi</span></span></div>
-          <div><span class="ico">💬</span><span><small>WhatsApp</small><a data-bind="wa" href="https://wa.me/6281515112249" target="_blank" rel="noopener" style="color:#fff">0815-1511-2249</a></span></div>
-          <div><span class="ico">✉️</span><span><small>Email</small><a data-bind="email" href="mailto:bumdesabahteranusa@gmail.com" style="color:#fff">bumdesabahteranusa@gmail.com</a></span></div>
-          <div><span class="ico">🕘</span><span><small>Jam layanan</small><span data-bind="jam">08:00 - 15:00</span></span></div>
+          <div><small>Alamat</small><span data-bind="alamat">Jl. Pulo Bambu RT.02 RW 01, Desa Karang Bahagia, Kec. Karang Bahagia, Kab. Bekasi</span></div>
+          <div><small>WhatsApp</small><a data-bind="wa" href="https://wa.me/6281515112249" target="_blank" rel="noopener">0815-1511-2249</a></div>
+          <div><small>Email</small><a data-bind="email" href="mailto:bumdesabahteranusa@gmail.com">bumdesabahteranusa@gmail.com</a></div>
+          <div><small>Jam layanan</small><span data-bind="jam">08:00 - 15:00</span></div>
         </div>
       </div>
-      <form id="f">
-        <input id="nama" placeholder="Nama Anda" aria-label="Nama Anda" autocomplete="name" required>
-        <select id="perlu" aria-label="Keperluan"><option>Pemesanan produk</option><option>Kemitraan / investasi</option><option>Informasi program</option><option>Lainnya</option></select>
-        <textarea id="pesan" rows="5" placeholder="Tulis pesan Anda" aria-label="Pesan" required></textarea>
-        <button class="btn green" type="submit">Kirim lewat WhatsApp</button>
-        <p class="note">Pesan akan dibuka di WhatsApp ke nomor BUM Desa.</p>
+      <form id="f" class="contact-form">
+        <h2 style="font-size:1.6rem">Kirim pesan</h2>
+        <label for="nama">Nama<input id="nama" autocomplete="name" required></label>
+        <label for="perlu">Keperluan<select id="perlu"><option>Pemesanan produk</option><option>Kemitraan / investasi</option><option>Informasi program</option><option>Lainnya</option></select></label>
+        <label for="pesan">Pesan<textarea id="pesan" rows="5" required></textarea></label>
+        <button class="btn wa" type="submit"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>Kirim lewat WhatsApp</button>
+        <p class="note">Pesan Anda akan dibuka di aplikasi WhatsApp, siap dikirim ke nomor BUM Desa.</p>
       </form>
     </div>
 
     <div class="map" id="peta" hidden></div>
   </div>
 </section>
+</main>
 
-<footer>
+<footer class="site-footer">
   <div class="wrap">
-    <img src="assets/logo.png" alt="BUM Desa Bahtera Nusantara">
-    <span>© 2026 BUM Desa Bahtera Nusantara · Desa Karang Bahagia, Kecamatan Karang Bahagia, Kabupaten Bekasi</span>
+    <div class="cta-band">
+      <h2>Mari tumbuh bersama desa.</h2>
+      <a class="btn light" href="#" data-wa="Halo BUM Desa Bahtera Nusantara, saya ingin bertanya."><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>Tanya lewat WhatsApp</a>
+    </div>
+    <div class="cols">
+      <div>
+        <h4>Alamat</h4>
+        <p data-bind="alamat">Jl. Pulo Bambu RT.02 RW 01, Desa Karang Bahagia, Kec. Karang Bahagia, Kab. Bekasi</p>
+      </div>
+      <div>
+        <h4>WhatsApp</h4>
+        <p><a data-bind="wa" href="https://wa.me/6281515112249" target="_blank" rel="noopener">0815-1511-2249</a></p>
+        <h4 class="next">Email</h4>
+        <p><a data-bind="email" href="mailto:bumdesabahteranusa@gmail.com">bumdesabahteranusa@gmail.com</a></p>
+      </div>
+      <div>
+        <h4>Jam layanan</h4>
+        <p data-bind="jam">08:00 - 15:00</p>
+      </div>
+      <div class="links">
+        <h4>Halaman</h4>
+          <a href="profil.html">Profil</a>
+          <a href="usaha.html">Unit Usaha</a>
+          <a href="kegiatan.html">Kegiatan</a>
+          <a href="transparansi.html">Transparansi</a>
+          <a href="kontak.html">Kontak</a>
+      </div>
+    </div>
+    <div class="legal-line">
+      <span>© 2026 BUM Desa Bahtera Nusantara</span>
+      <span>Perdes No. 2 Tahun 2025 · AHU 15136.AH.01.33 Tahun 2025</span>
+    </div>
   </div>
 </footer>
 
-<a class="wa-float" href="#" data-wa="Halo BUM Desa Bahtera Nusantara, saya ingin bertanya." aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg></a>
 <script src="js/config.js"></script>
 <script src="js/main.js"></script>
 <script type="module" src="js/data.js"></script>

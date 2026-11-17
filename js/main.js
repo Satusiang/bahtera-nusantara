@@ -3,14 +3,8 @@
 // Jika Supabase sudah tersambung, nomor diambil dari pengaturan di halaman admin.
 window.WA_NUMBER = window.WA_NUMBER || "6281515112249";
 
-// Menu HP
-const menu = document.getElementById('menu');
-const menuBtn = document.querySelector('.menu-btn');
-menuBtn?.setAttribute('aria-expanded', 'false');
-menuBtn?.setAttribute('aria-controls', 'menu');
-menuBtn?.addEventListener('click', () => {
-  menuBtn.setAttribute('aria-expanded', String(menu.classList.toggle('open')));
-});
+// Menu: di HP baris menu bisa digeser; pastikan halaman aktif terlihat
+document.querySelector('.menu [aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 
 // Tombol/tautan WhatsApp (elemen dengan atribut data-wa="pesan awal"), juga untuk elemen yang ditambahkan belakangan
 document.addEventListener('click', e => {

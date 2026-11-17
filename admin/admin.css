@@ -1,3 +1,5 @@
+body.admin > header{background:var(--paper);border-bottom:1px solid var(--line)}
+#v-app{padding:0}
 body.admin{background:var(--bg)}
 .admin main{padding:28px 20px 60px}
 .admin .who{display:flex;align-items:center;gap:12px;font-size:.9rem;color:var(--muted)}
