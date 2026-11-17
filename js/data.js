@@ -21,6 +21,15 @@ function kartuBerita(b) {
   </a></article>`;
 }
 
+// Alamat untuk pencarian peta: buang RT/RW (membingungkan Google) dan lengkapi wilayah
+function alamatUntukPeta(alamat) {
+  let a = String(alamat).replace(/\bRT\.?\s*\d+\s*\/?\s*(RW\.?\s*\d+)?/gi, ' ').replace(/\bRW\.?\s*\d+/gi, ' ');
+  a = a.replace(/\s+,/g, ',').replace(/,\s*,/g, ',').replace(/\s{2,}/g, ' ').trim().replace(/^,|,$/g, '');
+  if (!/bekasi/i.test(a)) a += ', Kabupaten Bekasi';
+  if (!/jawa barat/i.test(a)) a += ', Jawa Barat';
+  return a;
+}
+
 async function muatPengaturan(sb) {
   const { data, error } = await sb.from('pengaturan').select('kunci,nilai');
   if (error || !data) return;
@@ -47,6 +56,13 @@ async function muatPengaturan(sb) {
   setText('jam', k.jam);
   const peta = $('#peta');
   const mp = mapsInfo(k.maps_embed);
+  // Link pendek (maps.app.goo.gl) atau isian kosong tidak bisa disematkan:
+  // tampilkan peta berdasarkan alamat kantor; tombol tetap memakai link dari admin.
+  if (!mp.embed && k.alamat) {
+    const dariAlamat = mapsInfo(alamatUntukPeta(k.alamat));
+    mp.embed = dariAlamat.embed;
+    mp.link = mp.link || dariAlamat.link;
+  }
   if (peta && (mp.embed || mp.link)) {
     peta.hidden = false;
     const tombol = mp.link ? `<a class="btn map-btn" href="${esc(mp.link)}" target="_blank" rel="noopener">Buka di Google Maps</a>` : '';
