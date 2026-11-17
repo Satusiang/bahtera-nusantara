@@ -64,3 +64,10 @@ code{background:var(--bg);padding:1px 6px;border-radius:6px;font-size:.9em}
 .ok:empty,.err:empty{display:none}
 .link{color:var(--blue);font-weight:600;font-size:.9rem;text-decoration:none;justify-self:start}
 .link:hover{text-decoration:underline}
+
+.wadah-edit{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0}
+.wadah-head{display:flex;gap:8px;align-items:baseline;margin-bottom:4px;color:var(--navy)}
+.wadah-edit .tbl-edit{min-width:720px}
+.wadah-edit .tbl-edit td:first-child input{min-width:90px}
+.grup-unit{font-weight:600;color:var(--navy);margin:14px 0 4px}
+.grup-unit:first-child{margin-top:0}

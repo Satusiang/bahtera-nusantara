@@ -207,6 +207,192 @@ $('#f-galeri').addEventListener('submit', e => {
   });
 });
 
+// ================= LOKASI (kolam / kandang / petak) =================
+let lokasiCache = [];
+let wadahRows = [];
+let lokasiSiap = true;
+const WADAH_KOSONG = () => ({ nama: '', jenis: '', ukuran: '', metode: '', komoditas: '' });
+
+const unitTerpilih = () => unitCache.find(u => u.id === $('#lk-unit').value);
+const istilahDari = u => (u?.istilah || 'Kolam').trim() || 'Kolam';
+const labelKomDari = u => (u?.label_komoditas || 'Jenis ikan').trim() || 'Jenis ikan';
+
+function isiPilihanUnit() {
+  const sel = $('#lk-unit');
+  const kini = sel.value;
+  sel.innerHTML = unitCache.length
+    ? unitCache.map(u => `<option value="${esc(u.id)}">${esc(u.nama)}</option>`).join('')
+    : '<option value="">Tambahkan unit usaha dulu</option>';
+  if (kini && unitCache.some(u => u.id === kini)) sel.value = kini;
+  else {
+    const ikan = unitCache.find(u => u.ikon === 'ikan' || /ikan/i.test(u.nama));
+    if (ikan) sel.value = ikan.id;
+  }
+  gambarWadah();
+}
+
+function gambarWadah() {
+  const u = unitTerpilih();
+  const ist = istilahDari(u), kecil = ist.toLowerCase(), kom = labelKomDari(u);
+  $('#lk-wadah-judul').textContent = `Daftar ${kecil}`;
+  $('#lk-wadah-jumlah').textContent = `· ${wadahRows.length} ${kecil}`;
+  $('#lk-tambah').textContent = `+ Tambah ${kecil}`;
+  const sel = (i, f, extra = '') => `<input type="text" data-i="${i}" data-f="${f}" value="${esc(wadahRows[i][f])}" ${extra}>`;
+  $('#lk-wadah').innerHTML = `<thead><tr><th>Nama</th><th>Jenis ${esc(kecil)}</th><th>Ukuran</th><th>Metode budidaya</th><th>${esc(kom)}</th><th></th></tr></thead>
+    <tbody>${wadahRows.length ? wadahRows.map((w, i) => `<tr>
+      <td>${sel(i, 'nama', `placeholder="${esc(ist)} ${i + 1}" aria-label="Nama ${esc(kecil)} ${i + 1}"`)}</td>
+      <td>${sel(i, 'jenis', `list="dl-jenis" placeholder="mis. Terpal" aria-label="Jenis ${esc(kecil)} ${i + 1}"`)}</td>
+      <td>${sel(i, 'ukuran', `placeholder="mis. 3 x 4 m" aria-label="Ukuran ${esc(kecil)} ${i + 1}"`)}</td>
+      <td>${sel(i, 'metode', `list="dl-metode" placeholder="mis. Bioflok" aria-label="Metode budidaya ${esc(kecil)} ${i + 1}"`)}</td>
+      <td>${sel(i, 'komoditas', `list="dl-komoditas" placeholder="mis. Lele" aria-label="${esc(kom)} ${esc(kecil)} ${i + 1}"`)}</td>
+      <td><button type="button" class="x" title="Hapus baris" aria-label="Hapus ${esc(kecil)} ${i + 1}" data-del="${i}">×</button></td>
+    </tr>`).join('') : `<tr><td colspan="6" class="muted">Belum ada ${esc(kecil)}. Klik "+ Tambah ${esc(kecil)}".</td></tr>`}</tbody>`;
+}
+
+$('#lk-unit').addEventListener('change', gambarWadah);
+$('#lk-wadah').addEventListener('input', e => {
+  const { i, f } = e.target.dataset;
+  if (i !== undefined && f) wadahRows[+i][f] = e.target.value;
+});
+$('#lk-wadah').addEventListener('click', e => {
+  if (e.target.dataset.del === undefined) return;
+  wadahRows.splice(+e.target.dataset.del, 1);
+  gambarWadah();
+});
+$('#lk-tambah').addEventListener('click', () => {
+  wadahRows.push(WADAH_KOSONG());
+  gambarWadah();
+  $(`#lk-wadah input[data-i="${wadahRows.length - 1}"][data-f="nama"]`)?.focus();
+});
+$('#lk-salin').addEventListener('click', () => {
+  const akhir = wadahRows[wadahRows.length - 1];
+  wadahRows.push(akhir ? { ...akhir, nama: '' } : WADAH_KOSONG());
+  gambarWadah();
+});
+
+function resetLokasi() {
+  $('#f-lokasi').reset();
+  $('#lk-id').value = '';
+  $('#lk-preview').innerHTML = '';
+  $('#lk-hapusfoto-wrap').hidden = true;
+  $('#lokasi-title').textContent = 'Tambah lokasi';
+  wadahRows = [WADAH_KOSONG()];
+  isiPilihanUnit();
+}
+
+async function muatLokasi() {
+  const res = await sb.from('lokasi').select('*, wadah(*)').order('urutan').order('dibuat');
+  lokasiSiap = !res.error;
+  $('#lk-err').textContent = lokasiSiap ? '' :
+    'Tabel lokasi belum ada di database. Jalankan ulang seluruh isi supabase/schema.sql di Supabase (SQL Editor), lalu muat ulang halaman ini.';
+  lokasiCache = res.error ? [] : (res.data || []);
+  if (!wadahRows.length && !$('#lk-id').value) wadahRows = [WADAH_KOSONG()];
+  gambarWadah();
+  gambarDaftarLokasi();
+}
+
+function gambarDaftarLokasi() {
+  const el = $('#l-lokasi');
+  if (!lokasiSiap) { el.innerHTML = '<p class="empty">Belum bisa dimuat (lihat pesan di atas).</p>'; return; }
+  if (!lokasiCache.length) { el.innerHTML = '<p class="empty">Belum ada lokasi.</p>'; return; }
+  const grup = unitCache.map(u => [u, lokasiCache.filter(l => l.unit_id === u.id)]).filter(([, ls]) => ls.length);
+  el.innerHTML = grup.map(([u, ls]) => `<div class="grup-unit">${esc(u.nama)}</div>` + ls.map(l => {
+    const n = (l.wadah || []).length;
+    return `<div class="item">
+      ${safeUrl(l.foto_url) ? `<img src="${esc(l.foto_url)}" alt="">` : '<span class="noimg"></span>'}
+      <div class="meta"><b>${esc(l.nama)}</b>
+        <small><span class="status-dot" style="background:${JENIS_WARNA[l.status_jenis] || '#999'}"></span>${n} ${esc(istilahDari(u).toLowerCase())}${l.status ? ' · ' + esc(l.status) : ''} · urutan ${l.urutan}</small>
+        <span class="badge ${l.tampil ? 'on' : 'off'}">${l.tampil ? 'Tampil' : 'Disembunyikan'}</span></div>
+      <div class="acts">
+        <button class="btn alt small" data-edit="${l.id}">Edit</button>
+        <button class="btn danger small" data-del="${l.id}">Hapus</button>
+      </div></div>`;
+  }).join('')).join('');
+}
+
+$('#l-lokasi').addEventListener('click', async e => {
+  const id = e.target.dataset.edit || e.target.dataset.del;
+  const l = lokasiCache.find(x => x.id === id);
+  if (!l) return;
+  if (e.target.dataset.edit) {
+    $('#lk-id').value = l.id;
+    $('#lk-unit').value = l.unit_id;
+    $('#lk-nama').value = l.nama;
+    $('#lk-pengelola').value = l.pengelola || '';
+    $('#lk-status').value = l.status || '';
+    $('#lk-jenis').value = l.status_jenis || 'berjalan';
+    $('#lk-maps').value = l.maps || '';
+    $('#lk-ket').value = l.keterangan || '';
+    $('#lk-urutan').value = l.urutan;
+    $('#lk-tampil').checked = l.tampil;
+    $('#lk-foto').value = '';
+    $('#lk-hapusfoto').checked = false;
+    $('#lk-hapusfoto-wrap').hidden = !l.foto_url;
+    $('#lk-preview').innerHTML = safeUrl(l.foto_url) ? `<img src="${esc(l.foto_url)}" alt="">` : '';
+    wadahRows = [...(l.wadah || [])]
+      .sort((a, b) => (a.urutan - b.urutan) || String(a.dibuat).localeCompare(String(b.dibuat)))
+      .map(w => ({ nama: w.nama || '', jenis: w.jenis || '', ukuran: w.ukuran || '', metode: w.metode || '', komoditas: w.komoditas || '' }));
+    gambarWadah();
+    $('#lokasi-title').textContent = `Edit lokasi: ${l.nama}`;
+    $('#f-lokasi').scrollIntoView({ behavior: 'smooth' });
+  } else if (confirm(`Hapus lokasi "${l.nama}" beserta seluruh daftar ${istilahDari(unitCache.find(u => u.id === l.unit_id)).toLowerCase()}-nya?`)) {
+    await busy(e.target, async () => {
+      check(await sb.from('lokasi').delete().eq('id', l.id));
+      await hapusFile(l.foto_url);
+      toast('Lokasi dihapus');
+      if ($('#lk-id').value === l.id) resetLokasi();
+      await muatLokasi();
+    });
+  }
+});
+$('#lk-reset').addEventListener('click', resetLokasi);
+previewFile($('#lk-foto'), $('#lk-preview'));
+$('#f-lokasi').addEventListener('submit', e => {
+  e.preventDefault();
+  busy(e.submitter || $('#f-lokasi button[type=submit]'), async () => {
+    if (!lokasiSiap) throw new Error('Tabel lokasi belum ada. Jalankan ulang supabase/schema.sql di Supabase.');
+    if (!$('#lk-unit').value) throw new Error('Pilih unit usaha.');
+    const id = $('#lk-id').value;
+    const lama = lokasiCache.find(x => x.id === id);
+    const row = {
+      unit_id: $('#lk-unit').value,
+      nama: $('#lk-nama').value.trim(),
+      pengelola: $('#lk-pengelola').value.trim(),
+      status: $('#lk-status').value.trim(),
+      status_jenis: $('#lk-jenis').value,
+      maps: $('#lk-maps').value.trim(),
+      keterangan: $('#lk-ket').value.trim(),
+      urutan: parseInt($('#lk-urutan').value, 10) || 0,
+      tampil: $('#lk-tampil').checked,
+    };
+    const f = $('#lk-foto').files[0];
+    let fotoLamaDibuang = false;
+    if (f) { row.foto_url = await unggah(f, 'lokasi'); fotoLamaDibuang = true; }
+    else if ($('#lk-hapusfoto').checked) { row.foto_url = null; fotoLamaDibuang = true; }
+
+    let lokasiId = id;
+    if (id) check(await sb.from('lokasi').update(row).eq('id', id));
+    else lokasiId = check(await sb.from('lokasi').insert(row).select('id').single()).id;
+
+    // Daftar kolam: simpan yang baru dulu, baru hapus yang lama (data lama aman bila simpan gagal)
+    const baru = wadahRows
+      .filter(w => Object.values(w).some(v => String(v || '').trim()))
+      .map((w, i) => ({
+        lokasi_id: lokasiId, urutan: i,
+        nama: w.nama.trim(), jenis: w.jenis.trim(), ukuran: w.ukuran.trim(),
+        metode: w.metode.trim(), komoditas: w.komoditas.trim(),
+      }));
+    if (baru.length) check(await sb.from('wadah').insert(baru));
+    const idLama = (lama?.wadah || []).map(w => w.id);
+    if (idLama.length) check(await sb.from('wadah').delete().in('id', idLama));
+
+    if (fotoLamaDibuang && lama?.foto_url) await hapusFile(lama.foto_url);
+    toast(id ? 'Lokasi diperbarui' : 'Lokasi ditambahkan');
+    resetLokasi();
+    await muatLokasi();
+  });
+});
+
 // ================= PENGURUS =================
 let pengurusCache = [];
 function resetPengurus() {
@@ -348,6 +534,8 @@ async function muatUnit() {
         <button class="btn danger small" data-del="${u.id}">Hapus</button>
       </div></div>`;
   }).join('') : '<p class="empty">Belum ada unit usaha. Halaman memakai isi bawaan.</p>';
+  isiPilihanUnit();
+  gambarDaftarLokasi();
 }
 $('#l-unit').addEventListener('click', async e => {
   const id = e.target.dataset.edit || e.target.dataset.del;
@@ -364,6 +552,8 @@ $('#l-unit').addEventListener('click', async e => {
     $('#u-deskripsi').value = u.deskripsi || '';
     $('#u-fakta').value = faktaKeTeks(u.fakta);
     $('#u-wa').value = u.wa_pesan || '';
+    $('#u-istilah').value = u.istilah || '';
+    $('#u-labelkom').value = u.label_komoditas || '';
     $('#u-tampil').checked = u.tampil;
     $('#u-foto').value = '';
     $('#u-hapusfoto').checked = false;
@@ -399,6 +589,11 @@ $('#f-unit').addEventListener('submit', e => {
       wa_pesan: $('#u-wa').value.trim(),
       tampil: $('#u-tampil').checked,
     };
+    // Kolom sebutan hanya dikirim bila database sudah diperbarui (schema.sql terbaru)
+    if (unitCache.some(u => 'istilah' in u)) {
+      row.istilah = $('#u-istilah').value.trim() || 'Kolam';
+      row.label_komoditas = $('#u-labelkom').value.trim() || 'Jenis ikan';
+    }
     const f = $('#u-foto').files[0];
     let fotoLamaDibuang = false;
     if (f) { row.foto_url = await unggah(f, 'unit'); fotoLamaDibuang = true; }
@@ -524,7 +719,7 @@ async function masukDasbor(session) {
   if (!ok) { show('denied'); return; }
   show('app');
   resetBerita();
-  await Promise.all([muatBerita(), muatGaleri(), muatUnit(), muatPengurus(), muatDokumen(), muatTrans(), muatPengaturan()])
+  await Promise.all([muatBerita(), muatGaleri(), muatUnit().then(muatLokasi), muatPengurus(), muatDokumen(), muatTrans(), muatPengaturan()])
     .catch(e => toast('Gagal memuat data: ' + e.message, true));
 }
 

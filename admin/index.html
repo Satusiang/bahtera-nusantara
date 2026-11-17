@@ -82,6 +82,7 @@
       <button data-tab="berita" class="on">📰 Berita</button>
       <button data-tab="galeri">🖼️ Galeri</button>
       <button data-tab="unit">🌾 Unit Usaha</button>
+      <button data-tab="lokasi">📍 Lokasi</button>
       <button data-tab="pengurus">👥 Pengurus</button>
       <button data-tab="dokumen">📊 Transparansi</button>
       <button data-tab="pengaturan">⚙️ Kontak &amp; Profil</button>
@@ -150,6 +151,11 @@
             </label>
             <label>Urutan<input type="number" id="u-urutan" value="10" min="0" style="width:90px"></label>
           </div>
+          <div class="row wrap-row">
+            <label class="grow">Sebutan tempat usaha<input id="u-istilah" maxlength="30" placeholder="Kolam"></label>
+            <label class="grow">Sebutan isi/komoditas<input id="u-labelkom" maxlength="30" placeholder="Jenis ikan"></label>
+          </div>
+          <p class="muted" style="margin-top:-6px">Dipakai di tab Lokasi, mis. Perikanan: <b>Kolam</b> / <b>Jenis ikan</b>; Peternakan: <b>Kandang</b> / <b>Jenis ternak</b>; Pertanian: <b>Petak</b> / <b>Tanaman</b>.</p>
           <label>Foto (opsional, tampil di halaman Unit Usaha)<input type="file" id="u-foto" accept="image/*"></label>
           <div class="preview" id="u-preview"></div>
           <label class="check" id="u-hapusfoto-wrap" hidden><input type="checkbox" id="u-hapusfoto"> Hapus foto</label>
@@ -169,6 +175,64 @@
           <h2>Daftar unit usaha</h2>
           <p class="muted">Urutan kecil tampil lebih dulu.</p>
           <div id="l-unit" class="list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOKASI -->
+    <div class="tab" id="t-lokasi" hidden>
+      <div class="grid-admin">
+        <form id="f-lokasi" class="panel form span2">
+          <h2 id="lokasi-title">Tambah lokasi</h2>
+          <p class="err" id="lk-err"></p>
+          <input type="hidden" id="lk-id">
+          <div class="row wrap-row">
+            <label class="grow">Unit usaha<select id="lk-unit" required></select></label>
+            <label class="grow">Nama lokasi<input id="lk-nama" required maxlength="80" placeholder="mis. Lokasi Pulo Bambu"></label>
+          </div>
+          <div class="row wrap-row">
+            <label class="grow">Pengelola<input id="lk-pengelola" maxlength="80" placeholder="mis. Pokdakan Mina Bahagia"></label>
+            <label class="grow">Label status<input id="lk-status" maxlength="40" placeholder="mis. Aktif, Persiapan, Panen"></label>
+            <label>Warna status
+              <select id="lk-jenis"><option value="berjalan">Hijau (aktif)</option><option value="rintisan">Kuning (persiapan)</option><option value="rencana">Abu-abu (rencana)</option></select>
+            </label>
+          </div>
+
+          <div class="wadah-edit">
+            <div class="wadah-head"><b id="lk-wadah-judul">Daftar kolam</b><span class="muted" id="lk-wadah-jumlah"></span></div>
+            <p class="muted">Satu baris untuk satu kolam. Jumlah kolam di website dihitung otomatis. Kolom bisa diketik bebas atau dipilih dari saran.</p>
+            <div class="table-scroll"><table class="tbl-edit" id="lk-wadah"></table></div>
+            <div class="row wrap-row" style="margin-top:10px">
+              <button type="button" class="btn alt small" id="lk-tambah">+ Tambah kolam</button>
+              <button type="button" class="btn alt small" id="lk-salin">Salin baris terakhir</button>
+            </div>
+            <datalist id="dl-jenis"><option value="Tanah"></option><option value="Terpal"></option><option value="Bioflok"></option><option value="RAS"></option><option value="Beton"></option><option value="Keramba"></option></datalist>
+            <datalist id="dl-metode"><option value="Tradisional"></option><option value="Semi-intensif"></option><option value="Intensif"></option><option value="Bioflok"></option><option value="RAS"></option><option value="Minapadi"></option></datalist>
+            <datalist id="dl-komoditas"><option value="Lele"></option><option value="Nila"></option><option value="Gurame"></option><option value="Patin"></option><option value="Ikan mas"></option><option value="Bawal"></option></datalist>
+          </div>
+
+          <div class="row wrap-row">
+            <label class="grow">Foto lokasi (opsional)<input type="file" id="lk-foto" accept="image/*"></label>
+            <label class="grow">Lokasi Google Maps (opsional)
+              <textarea id="lk-maps" rows="2" placeholder="Koordinat (mis. -6.2006, 107.2002), link Google Maps, atau kode sematan"></textarea>
+            </label>
+          </div>
+          <div class="preview" id="lk-preview"></div>
+          <label class="check" id="lk-hapusfoto-wrap" hidden><input type="checkbox" id="lk-hapusfoto"> Hapus foto</label>
+          <label>Keterangan (opsional)<textarea id="lk-ket" rows="3" placeholder="mis. Mulai beroperasi Maret 2026, sumber air dari sumur bor."></textarea></label>
+          <div class="row wrap-row">
+            <label>Urutan<input type="number" id="lk-urutan" value="10" min="0" style="width:90px"></label>
+            <label class="check"><input type="checkbox" id="lk-tampil" checked> Tampilkan di website</label>
+          </div>
+          <div class="row">
+            <button class="btn" type="submit">Simpan lokasi</button>
+            <button class="btn alt" type="button" id="lk-reset">Batal / Baru</button>
+          </div>
+        </form>
+        <div class="panel span2">
+          <h2>Daftar lokasi</h2>
+          <p class="muted">Dikelompokkan per unit usaha. Urutan kecil tampil lebih dulu.</p>
+          <div id="l-lokasi" class="list"></div>
         </div>
       </div>
     </div>

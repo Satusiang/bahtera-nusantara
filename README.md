@@ -28,6 +28,15 @@ Selama Supabase belum diisi di `js/config.js`, website menampilkan isi bawaan di
 
 **Setiap kali `schema.sql` diperbarui** (misalnya fitur baru), jalankan ulang seluruh isinya di SQL Editor. File ini aman dijalankan berulang dan tidak menghapus data yang sudah ada.
 
+## Lokasi usaha (kolam, kandang, petak)
+Setiap unit usaha bisa punya beberapa **lokasi**, dan setiap lokasi berisi daftar **wadah** (kolam/kandang/petak) dengan jenis, ukuran, metode budidaya, dan komoditas.
+Di halaman Unit Usaha, lokasi tampil sebagai kartu yang bisa dibuka; jumlah kolam dihitung otomatis.
+
+- Data diisi di admin, tab **Lokasi**.
+- Sebutan per unit diatur di tab **Unit Usaha** (mis. Perikanan: *Kolam* / *Jenis ikan*; Peternakan: *Kandang* / *Jenis ternak*).
+- Fitur ini memakai tabel `lokasi` dan `wadah`: **jalankan ulang seluruh isi `supabase/schema.sql`** di SQL Editor sebelum dipakai.
+- Tiap kartu punya alamat sendiri, mis. `/usaha#perikanan-lokasi-pulo-bambu`, yang langsung membuka kartu itu.
+
 ## Deploy
 Cloudflare (Workers & Pages) terhubung ke branch `main`; setiap push ter-deploy otomatis. Tidak ada build command.
 

@@ -189,6 +189,7 @@ async function muatUnitUsaha(sb) {
       <a class="unit-row" href="usaha.html#${esc(slug(u.nama))}"><span class="no">${nomor(i)}</span><div class="name"><h3>${esc(u.nama)}</h3>${status(u)}</div><p>${esc(u.ringkasan || ringkas_(u.deskripsi))}</p></a>`).join('');
   }
   if (list) {
+    const lokasiPer = await muatLokasi(sb, data.map(u => u.id));
     list.innerHTML = data.map((u, i) => {
       const fakta = (Array.isArray(u.fakta) ? u.fakta : []).filter(f => f && (f.label || f.nilai));
       const foto = safeUrl(u.foto_url);
@@ -201,10 +202,103 @@ async function muatUnitUsaha(sb) {
           ${fakta.length ? `<div class="facts">${fakta.map(f => `<div><small>${esc(f.label)}</small><b>${esc(f.nilai)}</b></div>`).join('')}</div>` : ''}
           <a class="btn wa" href="#" data-wa="${esc(u.wa_pesan || `Halo BUM Desa Bahtera Nusantara, saya ingin bertanya tentang ${u.nama}.`)}">${WA_ICON}Tanya lewat WhatsApp</a>
         </div>
+        ${daftarLokasi(u, lokasiPer[u.id] || [])}
       </article>`;
     }).join('');
-    if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
+    aktifkanLokasi(list);
+    if (location.hash) {
+      const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (target && target.tagName === 'DETAILS') target.open = true;
+      target?.scrollIntoView();
+    }
   }
+}
+
+// ---------- lokasi usaha (kolam / kandang / petak) ----------
+async function muatLokasi(sb, unitIds) {
+  if (!unitIds.length) return {};
+  const { data, error } = await sb.from('lokasi').select('*, wadah(*)')
+    .in('unit_id', unitIds).eq('tampil', true).order('urutan').order('dibuat');
+  if (error || !data) return {}; // tabel belum dibuat: halaman tetap tampil tanpa lokasi
+  const per = {};
+  data.forEach(l => { (per[l.unit_id] ||= []).push(l); });
+  return per;
+}
+
+const unik = arr => [...new Set(arr.map(x => String(x || '').trim()).filter(Boolean))];
+
+function daftarLokasi(u, lokasi) {
+  if (!lokasi.length) return '';
+  const istilah = (u.istilah || 'Kolam').trim();
+  const kecil = istilah.toLowerCase();
+  const total = lokasi.reduce((n, l) => n + (l.wadah || []).length, 0);
+  return `
+        <div class="lokasi-wrap">
+          <h3 class="lokasi-head">Lokasi ${esc(kecil)} <small>${lokasi.length} lokasi · ${total} ${esc(kecil)}</small></h3>
+          <div class="lokasi-list">${lokasi.map(l => kartuLokasi(u, l, istilah)).join('')}</div>
+        </div>`;
+}
+
+function kartuLokasi(u, l, istilah) {
+  const kecil = istilah.toLowerCase();
+  const labelKom = (u.label_komoditas || 'Jenis ikan').trim();
+  const w = [...(l.wadah || [])].sort((a, b) => (a.urutan - b.urutan) || String(a.dibuat).localeCompare(String(b.dibuat)));
+  const kom = unik(w.map(x => x.komoditas));
+  const jenis = unik(w.map(x => x.jenis));
+  const metode = unik(w.map(x => x.metode));
+  const foto = safeUrl(l.foto_url);
+  const mp = mapsInfo(l.maps);
+  const id = `${slug(u.nama)}-${slug(l.nama)}`;
+  const st = l.status ? `<span class="status ${STATUS_KELAS[l.status_jenis] || 's-run'}">${esc(l.status)}</span>` : '';
+  const baris = (label, nilai) => nilai ? `<div><dt>${esc(label)}</dt><dd>${esc(nilai)}</dd></div>` : '';
+  const tabel = w.length ? `
+            <div class="wadah-scroll"><table class="wadah">
+              <thead><tr><th>${esc(istilah)}</th><th>Jenis ${esc(kecil)}</th><th>Ukuran</th><th>Metode budidaya</th><th>${esc(labelKom)}</th></tr></thead>
+              <tbody>${w.map((x, i) => `<tr>
+                <td data-label="${esc(istilah)}"><b>${esc(x.nama || `${istilah} ${i + 1}`)}</b></td>
+                <td data-label="Jenis ${esc(kecil)}">${esc(x.jenis) || '–'}</td>
+                <td data-label="Ukuran">${esc(x.ukuran) || '–'}</td>
+                <td data-label="Metode budidaya">${esc(x.metode) || '–'}</td>
+                <td data-label="${esc(labelKom)}">${esc(x.komoditas) || '–'}</td></tr>`).join('')}</tbody>
+            </table></div>` : `<p class="note">Belum ada data ${esc(kecil)} di lokasi ini.</p>`;
+  const peta = (mp.embed || mp.link) ? `
+            <div class="l-map${mp.embed ? '' : ' no-embed'}">
+              ${mp.embed ? `<iframe data-src="${esc(mp.embed)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta ${esc(l.nama)}" allowfullscreen></iframe>` : ''}
+              ${mp.link ? `<a class="btn line small" href="${esc(mp.link)}" target="_blank" rel="noopener">Buka di Google Maps</a>` : ''}
+            </div>` : '';
+  return `
+          <details class="lokasi" id="${esc(id)}">
+            <summary>
+              <span class="l-title"><b>${esc(l.nama)}</b><small>${w.length} ${esc(kecil)}${kom.length ? ` · ${esc(kom.join(', '))}` : ''}</small></span>
+              ${st}
+              <span class="l-chev" aria-hidden="true"></span>
+            </summary>
+            <div class="l-body">
+              <div class="l-info">
+                ${foto ? `<div class="l-foto"><img src="${esc(foto)}" alt="Lokasi ${esc(l.nama)}" loading="lazy"></div>` : ''}
+                <dl class="l-dl">
+                  ${baris('Pengelola', l.pengelola)}
+                  ${baris(`Jumlah ${kecil}`, String(w.length))}
+                  ${baris(`Jenis ${kecil}`, jenis.join(', '))}
+                  ${baris('Metode budidaya', metode.join(', '))}
+                  ${baris(labelKom, kom.join(', '))}
+                </dl>
+              </div>
+              ${l.keterangan ? `<div class="l-ket">${paragraf(l.keterangan)}</div>` : ''}
+              ${tabel}
+              ${peta}
+            </div>
+          </details>`;
+}
+
+// Peta dimuat saat kartu dibuka; alamat halaman ikut berubah agar bisa dibagikan
+function aktifkanLokasi(root) {
+  root.addEventListener('toggle', e => {
+    const d = e.target;
+    if (!(d instanceof HTMLDetailsElement) || !d.classList.contains('lokasi') || !d.open) return;
+    d.querySelectorAll('iframe[data-src]').forEach(f => { f.src = f.dataset.src; f.removeAttribute('data-src'); });
+    history.replaceState(null, '', '#' + d.id);
+  }, true);
 }
 const ringkas_ = t => ringkas(t, 120);
 
