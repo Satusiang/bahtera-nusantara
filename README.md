@@ -6,6 +6,7 @@ Website resmi BUM Desa Bahtera Nusantara, Desa Karang Bahagia, Kecamatan Karang 
 | Path | Isi |
 |---|---|
 | `index.html`, `profil.html`, `usaha.html`, `kegiatan.html`, `transparansi.html`, `kontak.html`, `berita.html` | Halaman publik |
+| `unit.html?u=<nama-unit>` | Halaman detail satu unit usaha (mis. `unit.html?u=perikanan`): deskripsi, rincian, dan lokasi |
 | `admin/` | Halaman admin (login pengurus) |
 | `css/style.css` | Tampilan semua halaman |
 | `js/config.js` | **Alamat & kunci Supabase** |
@@ -30,12 +31,12 @@ Selama Supabase belum diisi di `js/config.js`, website menampilkan isi bawaan di
 
 ## Lokasi usaha (kolam, kandang, petak)
 Setiap unit usaha bisa punya beberapa **lokasi**, dan setiap lokasi berisi daftar **wadah** (kolam/kandang/petak) dengan jenis, ukuran, metode budidaya, dan komoditas.
-Di halaman Unit Usaha, lokasi tampil sebagai kartu yang bisa dibuka; jumlah kolam dihitung otomatis.
+Halaman Unit Usaha menampilkan kartu tiap unit; klik kartu untuk membuka halaman unit (`unit.html?u=perikanan`) yang berisi lokasi sebagai kartu yang bisa dibuka. Jumlah kolam dan estimasi panen dihitung otomatis.
 
 - Data diisi di admin, tab **Lokasi**.
 - Sebutan per unit diatur di tab **Unit Usaha** (mis. Perikanan: *Kolam* / *Jenis ikan*; Peternakan: *Kandang* / *Jenis ternak*).
 - Fitur ini memakai tabel `lokasi` dan `wadah`: **jalankan ulang seluruh isi `supabase/schema.sql`** di SQL Editor sebelum dipakai.
-- Tiap kartu punya alamat sendiri, mis. `/usaha#perikanan-lokasi-pulo-bambu`, yang langsung membuka kartu itu.
+- Tiap kartu lokasi punya alamat sendiri, mis. `/unit?u=perikanan#perikanan-empang-kepuh`, yang langsung membuka kartu itu. Link lama `/usaha#...` otomatis diarahkan ke sana.
 
 ## Deploy
 Cloudflare (Workers & Pages) terhubung ke branch `main`; setiap push ter-deploy otomatis. Tidak ada build command.
