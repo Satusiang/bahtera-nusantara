@@ -71,3 +71,17 @@ code{background:var(--bg);padding:1px 6px;border-radius:6px;font-size:.9em}
 .wadah-edit .tbl-edit td:first-child input{min-width:90px}
 .grup-unit{font-weight:600;color:var(--navy);margin:14px 0 4px}
 .grup-unit:first-child{margin-top:0}
+.grid-admin > *,.form > *{min-width:0}  /* tabel lebar (daftar kolam) digeser di dalam kotaknya, bukan melebarkan halaman di HP */
+.form .row{flex-wrap:wrap}
+@media (max-width:600px){
+  .wadah-edit .table-scroll{overflow:visible}
+  .wadah-edit .tbl-edit{min-width:0;border:0}
+  .wadah-edit .tbl-edit,.wadah-edit .tbl-edit tbody,.wadah-edit .tbl-edit tr,.wadah-edit .tbl-edit td{display:block;width:100%}
+  .wadah-edit .tbl-edit thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .wadah-edit .tbl-edit tr{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:10px;background:var(--bg)}
+  .wadah-edit .tbl-edit td{display:grid;grid-template-columns:1fr;gap:4px;padding:6px 0;border:0;background:none}
+  .wadah-edit .tbl-edit td::before{content:attr(data-label);font-size:.85rem;font-weight:600;color:var(--muted)}
+  .wadah-edit .tbl-edit td.hapus{display:block;text-align:right}
+  .wadah-edit .tbl-edit td.hapus::before{content:none}
+  .wadah-edit .tbl-edit input[type=text]{min-width:0}
+}
