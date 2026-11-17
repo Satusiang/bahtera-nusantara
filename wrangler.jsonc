@@ -7,5 +7,7 @@
     "directory": ".",
     // Tampilkan 404.html untuk alamat yang tidak ada (sebelumnya halaman putih kosong)
     "not_found_handling": "404-page"
-  }
+  },
+  // Wajib ada (boleh kosong) agar build branch selain main ("npx wrangler preview") berhasil
+  "previews": {}
 }
