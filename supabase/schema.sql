@@ -197,5 +197,54 @@ where not exists (select 1 from public.unit_usaha);
 insert into public.admin (email) values ('bahteranusantara9@gmail.com')
 on conflict do nothing;
 
+-- ---------- Lokasi usaha & wadah budidaya (kolam / kandang / petak) ----------
+-- Sebutan per unit usaha, mis. Perikanan: "Kolam" + "Jenis ikan"; Peternakan: "Kandang" + "Jenis ternak".
+alter table public.unit_usaha add column if not exists istilah text not null default 'Kolam';
+alter table public.unit_usaha add column if not exists label_komoditas text not null default 'Jenis ikan';
+
+create table if not exists public.lokasi (
+  id uuid primary key default gen_random_uuid(),
+  unit_id uuid not null references public.unit_usaha(id) on delete cascade,
+  nama text not null,                             -- mis. 'Lokasi Pulo Bambu'
+  pengelola text not null default '',             -- nama pengelola / kelompok
+  status text not null default '',                -- label bebas, mis. 'Aktif', 'Persiapan', 'Panen'
+  status_jenis text not null default 'berjalan' check (status_jenis in ('berjalan','rintisan','rencana')),
+  foto_url text,
+  maps text not null default '',                  -- link Google Maps, koordinat, atau kode sematan
+  keterangan text not null default '',
+  urutan int not null default 0,
+  tampil boolean not null default true,
+  dibuat timestamptz not null default now()
+);
+create index if not exists lokasi_unit_idx on public.lokasi(unit_id);
+
+create table if not exists public.wadah (
+  id uuid primary key default gen_random_uuid(),
+  lokasi_id uuid not null references public.lokasi(id) on delete cascade,
+  nama text not null default '',                  -- mis. 'Kolam 1'
+  jenis text not null default '',                 -- mis. Tanah, Terpal, Bioflok, RAS
+  ukuran text not null default '',                -- mis. '3 x 4 m', 'Ø 2 m'
+  metode text not null default '',                -- metode budidaya
+  komoditas text not null default '',             -- mis. jenis ikan
+  urutan int not null default 0,
+  dibuat timestamptz not null default now()
+);
+create index if not exists wadah_lokasi_idx on public.wadah(lokasi_id);
+
+grant select on public.lokasi, public.wadah to anon, authenticated;
+grant insert, update, delete on public.lokasi, public.wadah to authenticated;
+alter table public.lokasi enable row level security;
+alter table public.wadah  enable row level security;
+
+drop policy if exists "baca publik" on public.lokasi;
+create policy "baca publik" on public.lokasi for select using (tampil = true or public.is_admin());
+drop policy if exists "baca publik" on public.wadah;
+create policy "baca publik" on public.wadah for select using (
+  exists (select 1 from public.lokasi l where l.id = lokasi_id and (l.tampil = true or public.is_admin())));
+drop policy if exists "admin kelola" on public.lokasi;
+create policy "admin kelola" on public.lokasi for all to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "admin kelola" on public.wadah;
+create policy "admin kelola" on public.wadah for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
 -- Segarkan cache skema Data API agar tabel baru langsung dikenali
 notify pgrst, 'reload schema';
