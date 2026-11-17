@@ -31,32 +31,84 @@ function check({ error, data }) {
   return data;
 }
 
-// Kecilkan foto di browser sebelum diunggah (lebar maks 1600 px, JPEG)
-async function kompres(file, maxW = 1600, quality = 0.82) {
-  if (!file.type.startsWith('image/') || file.type === 'image/gif') return file;
-  const img = await new Promise((res, rej) => {
+// ---------- berkas dari HP ----------
+// Di HP (terutama Android), foto yang dipilih dari Google Foto / penyimpanan awan kadang
+// tidak bisa dibaca lagi beberapa saat setelah dipilih. Karena itu isinya disalin ke memori
+// tepat saat dipilih, dan salinan itulah yang nanti diunggah.
+const MAKS_MB = 10;
+const TIPE_DARI_EKSTENSI = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', heic: 'image/heic', heif: 'image/heif', pdf: 'application/pdf' };
+const tebakTipe = nama => TIPE_DARI_EKSTENSI[String(nama).split('.').pop().toLowerCase()] || '';
+const salinanBerkas = new WeakMap();
+
+document.addEventListener('change', e => {
+  const input = e.target;
+  if (!(input instanceof HTMLInputElement) || input.type !== 'file') return;
+  const janji = Promise.all([...input.files].map(async f => {
+    try {
+      const isi = await f.arrayBuffer();
+      return new File([isi], f.name, { type: f.type || tebakTipe(f.name), lastModified: f.lastModified });
+    } catch {
+      throw new Error(`File "${f.name}" tidak bisa dibaca. Coba pilih lewat menu "File" atau "Galeri" (bukan Google Foto), atau simpan dulu fotonya ke memori HP.`);
+    }
+  }));
+  salinanBerkas.set(input, janji);
+  janji.catch(err => toast(err.message, true));
+}, true);
+
+// Ambil berkas yang dipilih di sebuah input (salinan yang aman dibaca)
+async function berkas(input) {
+  if (!input.files.length) return [];
+  return (await salinanBerkas.get(input)) ?? [...input.files];
+}
+
+async function dekodeGambar(blob) {
+  if ('createImageBitmap' in window) {
+    try { return await createImageBitmap(blob, { imageOrientation: 'from-image' }); } catch { /* coba cara lain */ }
+  }
+  return await new Promise((res, rej) => {
+    const url = URL.createObjectURL(blob);
     const i = new Image();
-    i.onload = () => res(i);
-    i.onerror = () => rej(new Error('Foto tidak bisa dibaca'));
-    i.src = URL.createObjectURL(file);
+    i.onload = () => { URL.revokeObjectURL(url); res(i); };
+    i.onerror = () => { URL.revokeObjectURL(url); rej(new Error('dekode')); };
+    i.src = url;
   });
-  const scale = Math.min(1, maxW / Math.max(img.width, img.height));
+}
+
+// Kecilkan foto di browser sebelum diunggah (sisi terpanjang maks 1600 px, JPEG).
+// Bila browser tidak sanggup memprosesnya (foto sangat besar / memori HP penuh),
+// foto diunggah apa adanya selama tidak lebih dari 10 MB.
+async function kompres(file, maxW = 1600, quality = 0.82) {
+  if (file.type === 'image/gif') return file;
+  const heic = /hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name || '');
+  let img;
+  try { img = await dekodeGambar(file); }
+  catch {
+    if (heic) throw new Error('Format foto HEIC belum bisa diproses di browser ini. Ubah format kamera ke JPG ("Paling kompatibel"), atau kirim fotonya ke diri sendiri lewat WhatsApp lalu simpan.');
+    if (file.size <= MAKS_MB * 1024 * 1024) return file;
+    throw new Error(`Foto terlalu besar untuk diproses (${(file.size / 1048576).toFixed(1)} MB). Pilih foto lain atau perkecil dulu (maks ${MAKS_MB} MB).`);
+  }
+  const w = img.width, h = img.height;
+  const scale = Math.min(1, maxW / Math.max(w, h));
   const c = document.createElement('canvas');
-  c.width = Math.round(img.width * scale);
-  c.height = Math.round(img.height * scale);
+  c.width = Math.max(1, Math.round(w * scale));
+  c.height = Math.max(1, Math.round(h * scale));
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-  URL.revokeObjectURL(img.src);
-  return await new Promise(res => c.toBlob(b => res(b || file), 'image/jpeg', quality));
+  img.close?.();
+  const hasil = await new Promise(res => c.toBlob(b => res(b), 'image/jpeg', quality));
+  if (hasil) return hasil;
+  if (!heic && file.size <= MAKS_MB * 1024 * 1024) return file;
+  throw new Error('Foto tidak bisa diproses. Coba foto lain.');
 }
 
 async function unggah(file, folder, { image = true } = {}) {
   const blob = image ? await kompres(file) : file;
-  const ext = image ? 'jpg' : (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const type = blob.type || file.type || tebakTipe(file.name) || (image ? 'image/jpeg' : 'application/octet-stream');
+  const ext = image
+    ? ({ 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }[type] || 'jpg')
+    : (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (blob.size > MAKS_MB * 1024 * 1024) throw new Error(`Ukuran file lebih dari ${MAKS_MB} MB.`);
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  check(await sb.storage.from(BUCKET).upload(path, blob, {
-    contentType: image ? 'image/jpeg' : (file.type || 'application/octet-stream'),
-    upsert: false,
-  }));
+  check(await sb.storage.from(BUCKET).upload(path, blob, { contentType: type, upsert: false }));
   return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
@@ -140,7 +192,7 @@ $('#f-berita').addEventListener('submit', e => {
       isi: $('#b-isi').value,
       terbit: $('#b-terbit').checked,
     };
-    const f = $('#b-foto').files[0];
+    const [f] = await berkas($('#b-foto'));
     if (f) row.foto_url = await unggah(f, 'berita');
     if (id) check(await sb.from('berita').update(row).eq('id', id));
     else check(await sb.from('berita').insert(row));
@@ -193,7 +245,7 @@ $('#l-galeri').addEventListener('click', async e => {
 $('#f-galeri').addEventListener('submit', e => {
   e.preventDefault();
   busy(e.submitter || $('#f-galeri button[type=submit]'), async () => {
-    const files = [...$('#g-files').files];
+    const files = await berkas($('#g-files'));
     const prog = $('#g-progress');
     for (let i = 0; i < files.length; i++) {
       prog.textContent = `Mengunggah ${i + 1} dari ${files.length}…`;
@@ -240,12 +292,12 @@ function gambarWadah() {
   const sel = (i, f, extra = '') => `<input type="text" data-i="${i}" data-f="${f}" value="${esc(wadahRows[i][f])}" ${extra}>`;
   $('#lk-wadah').innerHTML = `<thead><tr><th>Nama</th><th>Jenis ${esc(kecil)}</th><th>Ukuran</th><th>Metode budidaya</th><th>${esc(kom)}</th><th></th></tr></thead>
     <tbody>${wadahRows.length ? wadahRows.map((w, i) => `<tr>
-      <td>${sel(i, 'nama', `placeholder="${esc(ist)} ${i + 1}" aria-label="Nama ${esc(kecil)} ${i + 1}"`)}</td>
-      <td>${sel(i, 'jenis', `list="dl-jenis" placeholder="mis. Terpal" aria-label="Jenis ${esc(kecil)} ${i + 1}"`)}</td>
-      <td>${sel(i, 'ukuran', `placeholder="mis. 3 x 4 m" aria-label="Ukuran ${esc(kecil)} ${i + 1}"`)}</td>
-      <td>${sel(i, 'metode', `list="dl-metode" placeholder="mis. Bioflok" aria-label="Metode budidaya ${esc(kecil)} ${i + 1}"`)}</td>
-      <td>${sel(i, 'komoditas', `list="dl-komoditas" placeholder="mis. Lele" aria-label="${esc(kom)} ${esc(kecil)} ${i + 1}"`)}</td>
-      <td><button type="button" class="x" title="Hapus baris" aria-label="Hapus ${esc(kecil)} ${i + 1}" data-del="${i}">×</button></td>
+      <td data-label="Nama">${sel(i, 'nama', `placeholder="${esc(ist)} ${i + 1}" aria-label="Nama ${esc(kecil)} ${i + 1}"`)}</td>
+      <td data-label="Jenis ${esc(kecil)}">${sel(i, 'jenis', `list="dl-jenis" placeholder="mis. Terpal" aria-label="Jenis ${esc(kecil)} ${i + 1}"`)}</td>
+      <td data-label="Ukuran">${sel(i, 'ukuran', `placeholder="mis. 3 x 4 m" aria-label="Ukuran ${esc(kecil)} ${i + 1}"`)}</td>
+      <td data-label="Metode budidaya">${sel(i, 'metode', `list="dl-metode" placeholder="mis. Bioflok" aria-label="Metode budidaya ${esc(kecil)} ${i + 1}"`)}</td>
+      <td data-label="${esc(kom)}">${sel(i, 'komoditas', `list="dl-komoditas" placeholder="mis. Lele" aria-label="${esc(kom)} ${esc(kecil)} ${i + 1}"`)}</td>
+      <td class="hapus"><button type="button" class="x" title="Hapus baris" aria-label="Hapus ${esc(kecil)} ${i + 1}" data-del="${i}">× Hapus</button></td>
     </tr>`).join('') : `<tr><td colspan="6" class="muted">Belum ada ${esc(kecil)}. Klik "+ Tambah ${esc(kecil)}".</td></tr>`}</tbody>`;
 }
 
@@ -365,7 +417,7 @@ $('#f-lokasi').addEventListener('submit', e => {
       urutan: parseInt($('#lk-urutan').value, 10) || 0,
       tampil: $('#lk-tampil').checked,
     };
-    const f = $('#lk-foto').files[0];
+    const [f] = await berkas($('#lk-foto'));
     let fotoLamaDibuang = false;
     if (f) { row.foto_url = await unggah(f, 'lokasi'); fotoLamaDibuang = true; }
     else if ($('#lk-hapusfoto').checked) { row.foto_url = null; fotoLamaDibuang = true; }
@@ -447,7 +499,7 @@ $('#f-pengurus').addEventListener('submit', e => {
       jabatan: $('#p-jabatan').value.trim(),
       urutan: parseInt($('#p-urutan').value, 10) || 0,
     };
-    const f = $('#p-foto').files[0];
+    const [f] = await berkas($('#p-foto'));
     if (f) row.foto_url = await unggah(f, 'pengurus');
     if (id) check(await sb.from('pengurus').update(row).eq('id', id));
     else check(await sb.from('pengurus').insert(row));
@@ -484,7 +536,7 @@ $('#l-dokumen').addEventListener('click', async e => {
 $('#f-dokumen').addEventListener('submit', e => {
   e.preventDefault();
   busy(e.submitter || $('#f-dokumen button[type=submit]'), async () => {
-    const f = $('#d-file').files[0];
+    const [f] = await berkas($('#d-file'));
     if (f.size > 10 * 1024 * 1024) throw new Error('Ukuran file lebih dari 10 MB');
     const url = await unggah(f, 'dokumen', { image: false });
     check(await sb.from('dokumen').insert({
@@ -594,7 +646,7 @@ $('#f-unit').addEventListener('submit', e => {
       row.istilah = $('#u-istilah').value.trim() || 'Kolam';
       row.label_komoditas = $('#u-labelkom').value.trim() || 'Jenis ikan';
     }
-    const f = $('#u-foto').files[0];
+    const [f] = await berkas($('#u-foto'));
     let fotoLamaDibuang = false;
     if (f) { row.foto_url = await unggah(f, 'unit'); fotoLamaDibuang = true; }
     else if ($('#u-hapusfoto').checked) { row.foto_url = null; fotoLamaDibuang = true; }
