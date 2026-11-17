@@ -38,7 +38,9 @@ async function muatPengaturan(sb) {
       a.href = `mailto:${k.email}`;
     });
   }
-  setText('alamat', k.alamat);
+  // Lengkapi kabupaten bila admin belum menuliskannya
+  if (k.alamat && !/bekasi/i.test(k.alamat)) setText('alamat', `${k.alamat.trim().replace(/,$/, '')}, Kab. Bekasi`);
+  else setText('alamat', k.alamat);
   setText('jam', k.jam);
   const peta = $('#peta');
   const mp = mapsInfo(k.maps_embed);
@@ -83,7 +85,11 @@ async function muatBerita(sb) {
     .order('tanggal', { ascending: false }).order('dibuat', { ascending: false });
   const { data, error } = await (terbaru && !list ? q.limit(3) : q);
   if (error || !data || !data.length) return;
-  if (terbaru) terbaru.innerHTML = data.slice(0, 3).map(kartuBerita).join('');
+  if (terbaru) {
+    terbaru.innerHTML = data.slice(0, 3).map(kartuBerita).join('');
+    const sec = $('#kabar');
+    if (sec) sec.hidden = false;
+  }
   if (list) list.innerHTML = data.map(kartuBerita).join('');
 }
 
@@ -120,6 +126,7 @@ async function muatGaleri(sb) {
   lb.innerHTML = '<img alt=""><p></p>';
   document.body.appendChild(lb);
   lb.addEventListener('click', () => lb.classList.remove('on'));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('on'); });
   el.addEventListener('click', e => {
     const fig = e.target.closest('figure[data-src]');
     if (!fig) return;
@@ -198,10 +205,14 @@ async function muatTransparansi(sb) {
   const { data, error } = await sb.from('pengaturan').select('nilai').eq('kunci', 'transparansi').maybeSingle();
   if (error || !data) return;
   const t = data.nilai || {};
-  setText('tr-catatan', t.catatan);
   const kolom = Array.isArray(t.kolom) ? t.kolom : [];
   const baris = Array.isArray(t.baris) ? t.baris : [];
-  if (!tabel || !baris.length) return;
+  // Tabel hanya ditampilkan bila sudah ada angka yang diisi admin
+  const adaAngka = baris.some(b => (Array.isArray(b.nilai) ? b.nilai : []).some(v => String(v ?? '').trim()));
+  if (adaAngka) setText('tr-catatan', t.catatan || 'Ringkasan keuangan berdasarkan laporan pertanggungjawaban yang telah disahkan.');
+  else setText('tr-catatan', t.catatan);
+  if (!tabel || !adaAngka) return;
+  tabel.closest('.table-scroll').hidden = false;
   tabel.innerHTML = `<thead><tr><th>Uraian</th>${kolom.map(k => `<th style="text-align:right">${esc(k)}</th>`).join('')}</tr></thead>
     <tbody>${baris.map(b => {
       const v = Array.isArray(b.nilai) ? b.nilai : [];

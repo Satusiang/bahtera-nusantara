@@ -31,11 +31,15 @@ Selama Supabase belum diisi di `js/config.js`, website menampilkan isi bawaan di
 ## Deploy
 Cloudflare (Workers & Pages) terhubung ke branch `main`; setiap push ter-deploy otomatis. Tidak ada build command.
 
+- `wrangler.jsonc`: pengaturan Worker (nama harus sama dengan nama Worker di dashboard Cloudflare) dan halaman `404.html` untuk alamat yang tidak ada.
+- `.assetsignore`: file repo yang tidak ikut dipublikasikan (README, `supabase/`).
+- `sitemap.xml` dan `robots.txt`: untuk mesin pencari. Ganti alamatnya bila domain berubah.
+
 ## Lupa password admin
 Halaman `/admin/` punya tautan **Lupa password?**. Agar tautan di email mengarah ke website (bukan `localhost`):
 1. Supabase → **Authentication → URL Configuration**
-2. **Site URL**: alamat website, mis. `https://bahtera-nusantara.bumdes-karangbahagia.workers.dev`
-3. **Redirect URLs** → Add URL: `https://bahtera-nusantara.bumdes-karangbahagia.workers.dev/admin/`
+2. **Site URL**: alamat website, mis. `https://bahtera-nusantara.karangbahagia.workers.dev`
+3. **Redirect URLs** → Add URL: `https://bahtera-nusantara.karangbahagia.workers.dev/admin/`
 
 Catatan email bawaan Supabase: hanya terkirim ke email anggota tim organisasi Supabase dan dibatasi ±2 email/jam.
 Untuk admin lain, undang emailnya di **Organization → Team**, atau pasang SMTP sendiri (Authentication → Emails → SMTP Settings).
