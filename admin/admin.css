@@ -67,7 +67,8 @@ code{background:var(--bg);padding:1px 6px;border-radius:6px;font-size:.9em}
 
 .wadah-edit{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0}
 .wadah-head{display:flex;gap:8px;align-items:baseline;margin-bottom:4px;color:var(--navy)}
-.wadah-edit .tbl-edit{min-width:720px}
+.wadah-edit .tbl-edit{min-width:1000px}
+.wadah-edit .tbl-edit input[type=number],.wadah-edit .tbl-edit input[type=date]{padding:8px 10px;border:1px solid #cfd9e2;border-radius:8px;font:inherit;font-size:.9rem;width:100%;min-width:110px;min-height:0}
 .wadah-edit .tbl-edit td:first-child input{min-width:90px}
 .grup-unit{font-weight:600;color:var(--navy);margin:14px 0 4px}
 .grup-unit:first-child{margin-top:0}

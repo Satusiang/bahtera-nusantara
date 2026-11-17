@@ -226,6 +226,18 @@ async function muatLokasi(sb, unitIds) {
 }
 
 const unik = arr => [...new Set(arr.map(x => String(x || '').trim()).filter(Boolean))];
+const angkaID = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 });
+const kg = v => (v === null || v === undefined || v === '' || isNaN(Number(v))) ? '' : `${angkaID.format(Number(v))} kg`;
+const hariIni = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+// Ringkasan panen satu lokasi: total estimasi kg dan tanggal panen terdekat (yang belum lewat)
+function ringkasPanen(w) {
+  const angka = w.map(x => Number(x.estimasi_kg)).filter(n => !isNaN(n) && n > 0);
+  const total = w.reduce((t, x) => t + (Number(x.estimasi_kg) > 0 ? Number(x.estimasi_kg) : 0), 0);
+  const tgl = w.map(x => x.estimasi_panen).filter(Boolean).sort();
+  const depan = tgl.find(t => t >= hariIni()) || '';
+  return { total: angka.length ? total : 0, terdekat: depan };
+}
 
 function daftarLokasi(u, lokasi) {
   if (!lokasi.length) return '';
@@ -246,6 +258,7 @@ function kartuLokasi(u, l, istilah) {
   const kom = unik(w.map(x => x.komoditas));
   const jenis = unik(w.map(x => x.jenis));
   const metode = unik(w.map(x => x.metode));
+  const panen = ringkasPanen(w);
   const foto = safeUrl(l.foto_url);
   const mp = mapsInfo(l.maps);
   const id = `${slug(u.nama)}-${slug(l.nama)}`;
@@ -253,13 +266,15 @@ function kartuLokasi(u, l, istilah) {
   const baris = (label, nilai) => nilai ? `<div><dt>${esc(label)}</dt><dd>${esc(nilai)}</dd></div>` : '';
   const tabel = w.length ? `
             <div class="wadah-scroll"><table class="wadah">
-              <thead><tr><th>${esc(istilah)}</th><th>Jenis ${esc(kecil)}</th><th>Ukuran</th><th>Metode budidaya</th><th>${esc(labelKom)}</th></tr></thead>
+              <thead><tr><th>${esc(istilah)}</th><th>Jenis ${esc(kecil)}</th><th>Ukuran</th><th>Metode budidaya</th><th>${esc(labelKom)}</th><th>Estimasi panen</th><th>Perkiraan tanggal panen</th></tr></thead>
               <tbody>${w.map((x, i) => `<tr>
                 <td data-label="${esc(istilah)}"><b>${esc(x.nama || `${istilah} ${i + 1}`)}</b></td>
                 <td data-label="Jenis ${esc(kecil)}">${esc(x.jenis) || '–'}</td>
                 <td data-label="Ukuran">${esc(x.ukuran) || '–'}</td>
                 <td data-label="Metode budidaya">${esc(x.metode) || '–'}</td>
-                <td data-label="${esc(labelKom)}">${esc(x.komoditas) || '–'}</td></tr>`).join('')}</tbody>
+                <td data-label="${esc(labelKom)}">${esc(x.komoditas) || '–'}</td>
+                <td data-label="Estimasi panen" class="num">${esc(kg(x.estimasi_kg)) || '–'}</td>
+                <td data-label="Perkiraan tanggal panen">${esc(tanggalID(x.estimasi_panen)) || '–'}</td></tr>`).join('')}</tbody>
             </table></div>` : `<p class="note">Belum ada data ${esc(kecil)} di lokasi ini.</p>`;
   const peta = (mp.embed || mp.link) ? `
             <div class="l-map${mp.embed ? '' : ' no-embed'}">
@@ -269,7 +284,7 @@ function kartuLokasi(u, l, istilah) {
   return `
           <details class="lokasi" id="${esc(id)}">
             <summary>
-              <span class="l-title"><b>${esc(l.nama)}</b><small>${w.length} ${esc(kecil)}${kom.length ? ` · ${esc(kom.join(', '))}` : ''}</small></span>
+              <span class="l-title"><b>${esc(l.nama)}</b><small>${w.length} ${esc(kecil)}${kom.length ? ` · ${esc(kom.join(', '))}` : ''}${panen.total ? ` · ± ${esc(kg(panen.total))}` : ''}</small></span>
               ${st}
               <span class="l-chev" aria-hidden="true"></span>
             </summary>
@@ -282,6 +297,8 @@ function kartuLokasi(u, l, istilah) {
                   ${baris(`Jenis ${kecil}`, jenis.join(', '))}
                   ${baris('Metode budidaya', metode.join(', '))}
                   ${baris(labelKom, kom.join(', '))}
+                  ${baris('Estimasi hasil panen', panen.total ? `± ${kg(panen.total)}` : '')}
+                  ${baris('Panen terdekat', panen.terdekat ? tanggalID(panen.terdekat) : '')}
                 </dl>
               </div>
               ${l.keterangan ? `<div class="l-ket">${paragraf(l.keterangan)}</div>` : ''}

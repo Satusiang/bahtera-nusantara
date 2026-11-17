@@ -230,6 +230,9 @@ create table if not exists public.wadah (
   dibuat timestamptz not null default now()
 );
 create index if not exists wadah_lokasi_idx on public.wadah(lokasi_id);
+-- Estimasi panen per wadah
+alter table public.wadah add column if not exists estimasi_kg numeric check (estimasi_kg is null or estimasi_kg >= 0);
+alter table public.wadah add column if not exists estimasi_panen date;
 
 grant select on public.lokasi, public.wadah to anon, authenticated;
 grant insert, update, delete on public.lokasi, public.wadah to authenticated;

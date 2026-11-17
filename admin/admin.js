@@ -263,7 +263,7 @@ $('#f-galeri').addEventListener('submit', e => {
 let lokasiCache = [];
 let wadahRows = [];
 let lokasiSiap = true;
-const WADAH_KOSONG = () => ({ nama: '', jenis: '', ukuran: '', metode: '', komoditas: '' });
+const WADAH_KOSONG = () => ({ nama: '', jenis: '', ukuran: '', metode: '', komoditas: '', estimasi_kg: '', estimasi_panen: '' });
 
 const unitTerpilih = () => unitCache.find(u => u.id === $('#lk-unit').value);
 const istilahDari = u => (u?.istilah || 'Kolam').trim() || 'Kolam';
@@ -290,15 +290,17 @@ function gambarWadah() {
   $('#lk-wadah-jumlah').textContent = `· ${wadahRows.length} ${kecil}`;
   $('#lk-tambah').textContent = `+ Tambah ${kecil}`;
   const sel = (i, f, extra = '') => `<input type="text" data-i="${i}" data-f="${f}" value="${esc(wadahRows[i][f])}" ${extra}>`;
-  $('#lk-wadah').innerHTML = `<thead><tr><th>Nama</th><th>Jenis ${esc(kecil)}</th><th>Ukuran</th><th>Metode budidaya</th><th>${esc(kom)}</th><th></th></tr></thead>
+  $('#lk-wadah').innerHTML = `<thead><tr><th>Nama</th><th>Jenis ${esc(kecil)}</th><th>Ukuran</th><th>Metode budidaya</th><th>${esc(kom)}</th><th>Estimasi panen (kg)</th><th>Perkiraan tanggal panen</th><th></th></tr></thead>
     <tbody>${wadahRows.length ? wadahRows.map((w, i) => `<tr>
       <td data-label="Nama">${sel(i, 'nama', `placeholder="${esc(ist)} ${i + 1}" aria-label="Nama ${esc(kecil)} ${i + 1}"`)}</td>
       <td data-label="Jenis ${esc(kecil)}">${sel(i, 'jenis', `list="dl-jenis" placeholder="mis. Terpal" aria-label="Jenis ${esc(kecil)} ${i + 1}"`)}</td>
       <td data-label="Ukuran">${sel(i, 'ukuran', `placeholder="mis. 3 x 4 m" aria-label="Ukuran ${esc(kecil)} ${i + 1}"`)}</td>
       <td data-label="Metode budidaya">${sel(i, 'metode', `list="dl-metode" placeholder="mis. Bioflok" aria-label="Metode budidaya ${esc(kecil)} ${i + 1}"`)}</td>
       <td data-label="${esc(kom)}">${sel(i, 'komoditas', `list="dl-komoditas" placeholder="mis. Lele" aria-label="${esc(kom)} ${esc(kecil)} ${i + 1}"`)}</td>
+      <td data-label="Estimasi panen (kg)"><input type="text" inputmode="decimal" data-i="${i}" data-f="estimasi_kg" value="${esc(w.estimasi_kg ?? '')}" placeholder="mis. 150" aria-label="Estimasi panen ${esc(kecil)} ${i + 1} dalam kg"></td>
+      <td data-label="Perkiraan tanggal panen"><input type="date" data-i="${i}" data-f="estimasi_panen" value="${esc(w.estimasi_panen ?? '')}" aria-label="Perkiraan tanggal panen ${esc(kecil)} ${i + 1}"></td>
       <td class="hapus"><button type="button" class="x" title="Hapus baris" aria-label="Hapus ${esc(kecil)} ${i + 1}" data-del="${i}">× Hapus</button></td>
-    </tr>`).join('') : `<tr><td colspan="6" class="muted">Belum ada ${esc(kecil)}. Klik "+ Tambah ${esc(kecil)}".</td></tr>`}</tbody>`;
+    </tr>`).join('') : `<tr><td colspan="8" class="muted">Belum ada ${esc(kecil)}. Klik "+ Tambah ${esc(kecil)}".</td></tr>`}</tbody>`;
 }
 
 $('#lk-unit').addEventListener('change', gambarWadah);
@@ -321,6 +323,14 @@ $('#lk-salin').addEventListener('click', () => {
   wadahRows.push(akhir ? { ...akhir, nama: '' } : WADAH_KOSONG());
   gambarWadah();
 });
+
+const angkaAtauNull = v => {
+  const t = String(v ?? '').trim().replace(',', '.');
+  if (!t) return null;
+  const n = Number(t);
+  if (isNaN(n) || n < 0) throw new Error(`Estimasi panen "${v}" bukan angka yang valid.`);
+  return n;
+};
 
 function resetLokasi() {
   $('#f-lokasi').reset();
@@ -383,7 +393,8 @@ $('#l-lokasi').addEventListener('click', async e => {
     $('#lk-preview').innerHTML = safeUrl(l.foto_url) ? `<img src="${esc(l.foto_url)}" alt="">` : '';
     wadahRows = [...(l.wadah || [])]
       .sort((a, b) => (a.urutan - b.urutan) || String(a.dibuat).localeCompare(String(b.dibuat)))
-      .map(w => ({ nama: w.nama || '', jenis: w.jenis || '', ukuran: w.ukuran || '', metode: w.metode || '', komoditas: w.komoditas || '' }));
+      .map(w => ({ nama: w.nama || '', jenis: w.jenis || '', ukuran: w.ukuran || '', metode: w.metode || '', komoditas: w.komoditas || '',
+        estimasi_kg: w.estimasi_kg ?? '', estimasi_panen: w.estimasi_panen || '' }));
     gambarWadah();
     $('#lokasi-title').textContent = `Edit lokasi: ${l.nama}`;
     $('#f-lokasi').scrollIntoView({ behavior: 'smooth' });
@@ -433,8 +444,14 @@ $('#f-lokasi').addEventListener('submit', e => {
         lokasi_id: lokasiId, urutan: i,
         nama: w.nama.trim(), jenis: w.jenis.trim(), ukuran: w.ukuran.trim(),
         metode: w.metode.trim(), komoditas: w.komoditas.trim(),
+        estimasi_kg: angkaAtauNull(w.estimasi_kg),
+        estimasi_panen: w.estimasi_panen || null,
       }));
-    if (baru.length) check(await sb.from('wadah').insert(baru));
+    if (baru.length) {
+      const { error } = await sb.from('wadah').insert(baru);
+      if (error && /estimasi/i.test(error.message)) throw new Error('Kolom estimasi panen belum ada di database. Jalankan ulang seluruh isi supabase/schema.sql di Supabase (SQL Editor), lalu simpan lagi.');
+      if (error) throw new Error(error.message);
+    }
     const idLama = (lama?.wadah || []).map(w => w.id);
     if (idLama.length) check(await sb.from('wadah').delete().in('id', idLama));
 
