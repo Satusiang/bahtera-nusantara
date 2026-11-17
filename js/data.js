@@ -173,44 +173,114 @@ function paragraf(teks) {
     .map(t => `<p>${esc(t).replace(/\n/g, '<br>')}</p>`).join('');
 }
 
+const unitUrl = u => `unit.html?u=${encodeURIComponent(slug(u.nama))}`;
+const statusUnit = u => u.status ? `<span class="status ${STATUS_KELAS[u.status_jenis] || 's-run'}">${esc(u.status)}</span>` : '';
+const ringkas_ = t => ringkas(t, 120);
+
 async function muatUnitUsaha(sb) {
-  const ringkas = $('#unit-ringkas');
+  const ringkasEl = $('#unit-ringkas');
   const list = $('#unit-list');
+  const halaman = $('#unit-page');
   const jumlah = document.querySelectorAll('[data-bind="jumlah-unit"]');
-  if (!ringkas && !list && !jumlah.length) return;
+  if (!ringkasEl && !list && !halaman && !jumlah.length) return;
   const { data, error } = await sb.from('unit_usaha').select('*').eq('tampil', true).order('urutan').order('dibuat');
-  if (error || !data || !data.length) return;
-  jumlah.forEach(el => { el.textContent = `${data.length} bidang`; });
+  const units = (!error && data) ? data : [];
+  if (error || !data) { unitGagal(); return; }
+  jumlah.forEach(el => { el.textContent = `${units.length} bidang`; });
 
-  const status = u => u.status ? `<span class="status ${STATUS_KELAS[u.status_jenis] || 's-run'}">${esc(u.status)}</span>` : '';
-
-  if (ringkas) {
-    ringkas.innerHTML = data.slice(0, 6).map((u, i) => `
-      <a class="unit-row" href="usaha.html#${esc(slug(u.nama))}"><span class="no">${nomor(i)}</span><div class="name"><h3>${esc(u.nama)}</h3>${status(u)}</div><p>${esc(u.ringkasan || ringkas_(u.deskripsi))}</p></a>`).join('');
+  if (ringkasEl) {
+    ringkasEl.innerHTML = units.length ? units.slice(0, 6).map((u, i) => `
+      <a class="unit-row" href="${unitUrl(u)}"><span class="no">${nomor(i)}</span><div class="name"><h3>${esc(u.nama)}</h3>${statusUnit(u)}</div><p>${esc(u.ringkasan || ringkas_(u.deskripsi))}</p></a>`).join('')
+      : '<p class="empty">Belum ada unit usaha yang ditampilkan.</p>';
   }
   if (list) {
-    const lokasiPer = await muatLokasi(sb, data.map(u => u.id));
-    list.innerHTML = data.map((u, i) => {
-      const fakta = (Array.isArray(u.fakta) ? u.fakta : []).filter(f => f && (f.label || f.nilai));
-      const foto = safeUrl(u.foto_url);
-      return `
+    // Link lama (usaha.html#perikanan atau #perikanan-nama-lokasi) diarahkan ke halaman unit
+    const hash = decodeURIComponent(location.hash.slice(1));
+    const tujuan = hash && units.find(u => hash === slug(u.nama) || hash.startsWith(slug(u.nama) + '-'));
+    if (tujuan) { location.replace(unitUrl(tujuan) + (hash === slug(tujuan.nama) ? '' : '#' + encodeURIComponent(hash))); return; }
+
+    const lokasiPer = await muatLokasi(sb, units.map(u => u.id));
+    list.innerHTML = units.length ? units.map((u, i) => kartuUnit(u, i, lokasiPer[u.id] || [])).join('')
+      : '<p class="empty">Belum ada unit usaha yang ditampilkan.</p>';
+  }
+  if (halaman) await isiHalamanUnit(sb, units);
+}
+
+function unitGagal() {
+  const pesan = '<p class="empty">Daftar unit usaha belum dapat dimuat. Silakan muat ulang halaman atau hubungi kami lewat WhatsApp.</p>';
+  ['#unit-ringkas', '#unit-list', '#unit-page'].forEach(sel => { const el = $(sel); if (el) el.innerHTML = pesan; });
+}
+
+function ringkasLokasi(u, lokasi) {
+  if (!lokasi.length) return '';
+  const kecil = (u.istilah || 'Kolam').trim().toLowerCase();
+  const semua = lokasi.flatMap(l => l.wadah || []);
+  const p = ringkasPanen(semua);
+  return [`${lokasi.length} lokasi`, `${semua.length} ${kecil}`, p.total ? `± ${kg(p.total)}` : ''].filter(Boolean).join(' · ');
+}
+
+function kartuUnit(u, i, lokasi) {
+  const foto = safeUrl(u.foto_url);
+  const meta = ringkasLokasi(u, lokasi);
+  return `
+      <a class="unit-card" href="${unitUrl(u)}">
+        ${foto ? `<div class="uc-foto"><img src="${esc(foto)}" alt="" loading="lazy"></div>` : ''}
+        <div class="uc-body">
+          <span class="no">${nomor(i)}</span>
+          <h2>${esc(u.nama)}</h2>
+          ${statusUnit(u)}
+          <p>${esc(u.ringkasan || ringkas_(u.deskripsi))}</p>
+          ${meta ? `<span class="uc-meta">${esc(meta)}</span>` : ''}
+          <span class="uc-more">Lihat detail <span aria-hidden="true">→</span></span>
+        </div>
+      </a>`;
+}
+
+async function isiHalamanUnit(sb, units) {
+  const el = $('#unit-page');
+  const kunci = new URLSearchParams(location.search).get('u') || '';
+  const u = units.find(x => slug(x.nama) === kunci || x.id === kunci);
+  if (!u) {
+    $('#unit-judul').textContent = 'Unit usaha tidak ditemukan';
+    $('#unit-crumb').textContent = 'Tidak ditemukan';
+    el.innerHTML = '<p class="lead">Unit usaha ini tidak ada atau sudah tidak ditampilkan.</p><a class="more" href="usaha.html">Lihat semua unit usaha</a>';
+    return;
+  }
+  document.title = `${u.nama} – BUM Desa Bahtera Nusantara`;
+  $('#unit-judul').textContent = u.nama;
+  $('#unit-crumb').textContent = u.nama;
+  $('#unit-status').innerHTML = statusUnit(u);
+  const lead = $('#unit-lead');
+  if (u.ringkasan) lead.textContent = u.ringkasan; else lead.remove();
+
+  const lokasiPer = await muatLokasi(sb, [u.id]);
+  const lokasi = lokasiPer[u.id] || [];
+  const fakta = (Array.isArray(u.fakta) ? u.fakta : []).filter(f => f && (f.label || f.nilai));
+  const foto = safeUrl(u.foto_url);
+  const isi = paragraf(u.deskripsi);
+  el.innerHTML = `
       <article class="unit-detail" id="${esc(slug(u.nama))}">
-        <div class="side"><span class="no">${nomor(i)}</span><h2>${esc(u.nama)}</h2>${status(u)}</div>
+        <div class="side"><h2>Tentang unit</h2>${ringkasLokasi(u, lokasi) ? `<p class="note">${esc(ringkasLokasi(u, lokasi))}</p>` : ''}</div>
         <div class="main">
           ${foto ? `<div class="foto"><img src="${esc(foto)}" alt="${esc(u.nama)}" loading="lazy"></div>` : ''}
-          ${paragraf(u.deskripsi || u.ringkasan)}
+          ${isi}
           ${fakta.length ? `<div class="facts">${fakta.map(f => `<div><small>${esc(f.label)}</small><b>${esc(f.nilai)}</b></div>`).join('')}</div>` : ''}
           <a class="btn wa" href="#" data-wa="${esc(u.wa_pesan || `Halo BUM Desa Bahtera Nusantara, saya ingin bertanya tentang ${u.nama}.`)}">${WA_ICON}Tanya lewat WhatsApp</a>
         </div>
-        ${daftarLokasi(u, lokasiPer[u.id] || [])}
+        ${daftarLokasi(u, lokasi)}
       </article>`;
-    }).join('');
-    aktifkanLokasi(list);
-    if (location.hash) {
-      const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-      if (target && target.tagName === 'DETAILS') target.open = true;
-      target?.scrollIntoView();
-    }
+  aktifkanLokasi(el);
+  if (location.hash) {
+    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (target && target.tagName === 'DETAILS') target.open = true;
+    target?.scrollIntoView();
+  }
+
+  const lain = units.filter(x => x.id !== u.id);
+  if (lain.length) {
+    $('#unit-lain-list').innerHTML = lain.map((x, i) => `
+      <a class="unit-row" href="${unitUrl(x)}"><span class="no">${nomor(units.indexOf(x))}</span><div class="name"><h3>${esc(x.nama)}</h3>${statusUnit(x)}</div><p>${esc(x.ringkasan || ringkas_(x.deskripsi))}</p></a>`).join('');
+    $('#unit-lain').hidden = false;
   }
 }
 
@@ -317,8 +387,6 @@ function aktifkanLokasi(root) {
     history.replaceState(null, '', '#' + d.id);
   }, true);
 }
-const ringkas_ = t => ringkas(t, 120);
-
 async function muatTransparansi(sb) {
   const tabel = $('#ringkasan-tabel');
   if (!tabel && !document.querySelector('[data-bind="tr-catatan"]')) return;
@@ -343,10 +411,11 @@ async function muatTransparansi(sb) {
 
 (async () => {
   let sb;
-  try { sb = await getClient(); } catch (e) { console.warn('Supabase tidak dapat dimuat', e); return; }
+  try { sb = await getClient(); } catch (e) { console.warn('Supabase tidak dapat dimuat', e); unitGagal(); return; }
   if (!sb) {
     const d = $('#berita-detail');
     if (d) d.innerHTML = '<p class="lead">Berita belum tersedia.</p>';
+    unitGagal();
     return;
   }
   const tugas = [muatPengaturan, muatPengurus, muatBerita, muatDetailBerita, muatGaleri, muatDokumen, muatUnitUsaha, muatTransparansi];
